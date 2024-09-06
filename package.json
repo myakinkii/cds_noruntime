@@ -13,6 +13,16 @@
     "@cap-js/sqlite": "^1"
   },
   "scripts": {
-    "start": "cds-serve"
+    "serve": "cds-serve --in-memory",
+    "start": "cds build && cd gen/srv && cds deploy && node index.js"
+  },
+  "cds": {
+    "requires": {
+      "db":{
+        "kind": "sqlite",
+        "model":"srv/csn.json",
+        "credentials": { "url": "db.sqlite" }
+      }
+    }
   }
 }

@@ -1,0 +1,37 @@
+@baseURL = http://localhost:4004
+@catServiceURL = {{baseURL}}/odata/v4/catalog
+@adminServiceURL = {{baseURL}}/odata/v4/admin
+@authentication = Basic alice:secret
+
+### get catalog $metadata
+GET {{catServiceURL}}/$metadata
+Authorization: {{authentication}}
+
+
+### get admin $metadata
+GET {{adminServiceURL}}/$metadata
+Authorization: {{authentication}}
+
+
+### create author
+@date = {{ $datetime 'YYYY-MM-DD' 1 d }}
+POST {{adminServiceURL}}/Authors
+Authorization: {{authentication}}
+Content-Type: application/json
+
+{
+    "ID"  : 666,
+    "name": "Satan",
+    "dateOfBirth" : "{{date}}"
+}
+
+### create book
+POST {{adminServiceURL}}/Books
+Authorization: {{authentication}}
+Content-Type: application/json
+
+{
+    "ID"  : 666,
+    "title": "Satan bible",
+    "author_ID": 666
+}
