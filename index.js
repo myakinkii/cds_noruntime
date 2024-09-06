@@ -5,6 +5,13 @@ const port = process.env.PORT || 4004
 
 cds.connect("db").then(async function(db){
 
+    // load and prepare models (we need more global vars!)
+    const csn = await cds.load('*').then(cds.minify)
+    // why we need this?
+    cds.edmxs = cds.compile.to.edmx.files(csn)
+    // this is used at least in metadata handler
+    cds.model = cds.compile.for.nodejs(csn) // but srv.definition === csnService -> true
+
     cds.on('bootstrap', (app)=>{
         // not gonna happen
     })
@@ -34,4 +41,8 @@ cds.connect("db").then(async function(db){
 
     console.log(`running with profiles ${cds.env.profiles}`)
     console.log(`cds listening on port ${port}`)
+    console.log(`app router stack:\n ${app._router.stack.map( s => {
+        if (s.name == 'router') return s.handle.stack.map(h => s.name + ' > ' + s.handle.path + ' > ' + h.name ).join("\n")
+        return s.name + ' > ' + (s.path||s.regexp)
+    }).join("\n")}`)
 })
