@@ -25,7 +25,7 @@ cds.connect("db").then(async function(somehowThisIsCdsNow){
     const adminImpl = require("./srv/admin-service")
     const catalogImpl = require("./srv/cat-service")
     // await cds_serve("AdminService").with(adminImpl).in(app)
-    // await cds_serve("CatalogService").with(catalogImpl).in(app)
+    // await cds_serve("CatalogService").with(catalogImpl).at("/some-endpoint").to("odata-v4").in(app)
     await cds_serve("all").with([adminImpl, catalogImpl]).in(app) // to serve all services with impl classess
 
     function cds_serve (som, _options){
@@ -65,11 +65,17 @@ cds.connect("db").then(async function(somehowThisIsCdsNow){
                     return srv 
                 }))
 
-                const { serve } = cds.service.protocols
+                // for now we will only focus on default v4 protocol
+                const adapterV4 = require('@sap/cds//lib/srv/protocols/odata-v4')
+                const { before, after } = cds.middlewares
 
-                instances.forEach (each => {
-                    serve(each, /*to:*/ app)
-                    cds.emit ('serving', each)
+                instances.forEach (srv => {
+                    for (let { kind, path } of srv.endpoints) {
+                        const adapter = new adapterV4(srv)
+                        adapter.path = path
+                        app.use(path, before, adapter, after) // ok there it is! our magic
+                        cds.emit ('serving', srv)
+                    }
                 })
                 return this
             }
