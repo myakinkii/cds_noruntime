@@ -1,7 +1,7 @@
 const cds = require('@sap/cds')
 const { Books } = cds.entities ('sap.capire.bookshop')
 
-class CatalogService extends cds.ApplicationService { init(){
+module.exports = class CatalogService extends cds.ApplicationService { init(){
 
   // Reduce stock of ordered books if available stock suffices
   this.on ('submitOrder', async req => {
@@ -23,4 +23,3 @@ class CatalogService extends cds.ApplicationService { init(){
   return super.init()
 }}
 
-module.exports = { CatalogService }

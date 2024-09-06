@@ -23,7 +23,54 @@ cds.connect("db").then(async function(db){
         const { Books, Authors } = service.entities
     })
 
-    await cds.serve("all").in(app) // to serve all services
+    // await cds.serve("all").in(app) // to serve all services
+    await cds_serve("all").in(app) // to serve all services
+    // await cds_serve("AdminService").with(require("./srv/admin-service")).in(app)
+    // await cds_serve("CatalogService").with(require("./srv/cat-service")).in(app)
+
+    function cds_serve (som, _options){
+        
+        const services = som == "all" ? cds.model.services : [cds.model.services[som]]
+
+        const o = {..._options} // this later is modified by our from/with/at/to
+
+        return {
+            from (model) {
+                o.from = model;
+                return this
+            },
+            with (impl) {
+                o.with = impl;
+                return this
+            },
+            at (path) {
+                o.at   = path;
+                return this
+            },
+            to (protocol) {
+                o.to   = protocol;
+                return this
+            },
+            async in (app) {
+
+                const { Service } = cds.service.factory
+
+                const instances = await Promise.all (services.map( async d => {
+                    const srv = await new Service (d.name, cds.model, o)
+                    await srv._init()
+                    return srv 
+                }))
+
+                const { serve } = cds.service.protocols
+
+                instances.forEach (each => {
+                    serve(each, /*to:*/ app)
+                    cds.emit ('serving', each)
+                })
+                return this
+            }
+        }
+    }
 
     cds.on('served', (services)=>{
         const { CatalogService, AdminService, db } = services
