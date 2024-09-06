@@ -3,6 +3,60 @@ const express = require("express")
 const app = express()
 const port = process.env.PORT || 4004
 
+
+const jsonBodyParser = express.json()
+const BaseProtocolAdapter = require('@sap/cds/lib/srv/protocols/http')
+const { isStream, stream } = require('@sap/cds/libx/odata/middleware/stream')
+
+const ODataAdapterMiddleware = {
+    sericeDocument : require('@sap/cds/libx/odata/middleware/service-document'),
+    metadata : require('@sap/cds/libx/odata/middleware/metadata'),
+    parse: require('@sap/cds/libx/odata/middleware/parse'), // cds.odata.parse wtf???
+    batch: require('@sap/cds/libx/odata/middleware/batch'),
+    operation: require('@sap/cds/libx/odata/middleware/operation'), // functions + actions
+    create: require('@sap/cds/libx/odata/middleware/create'),
+    read: require('@sap/cds/libx/odata/middleware/read'),
+    update :require('@sap/cds/libx/odata/middleware/update'), // put + patch
+    delete: require('@sap/cds/libx/odata/middleware/delete'),
+    error: require('@sap/cds/libx/odata/middleware/error'),
+    odata_streams: function (req, res, next) { // this is going to have more fun in cds8..
+        // REVISIT: body of batch subrequests are already deserialized
+        if (typeof req.body === 'object') return next()
+        if (req.method === 'PUT' && isStream(req._query)) {
+            req.body = { value: req }
+            return next()
+        }
+        // TODO: check if the raw body still exists, then we can remove deepCopy() in the handlers
+        return jsonBodyParser(req, res, next)
+    }
+}
+
+class ODataAdapter extends BaseProtocolAdapter {
+  log(req) {
+    // simplest ever
+    console.log(req.method, req.baseUrl, req.url)
+  }
+  
+  router4(srv) {
+    const router = super.router4(srv)
+    return router.use(/^\/$/, ODataAdapterMiddleware.sericeDocument(srv))
+        .use('/\\$metadata', ODataAdapterMiddleware.metadata(srv))
+        .use(ODataAdapterMiddleware.parse(srv))
+        .use(ODataAdapterMiddleware.odata_streams)
+        .post('/\\$batch', ODataAdapterMiddleware.batch(srv, router))
+        .head('*', (_, res) => res.sendStatus(405))
+        .post('*', ODataAdapterMiddleware.operation(srv)) //> action
+        .get('*', ODataAdapterMiddleware.operation(srv)) //> function
+        .post('*', ODataAdapterMiddleware.create(srv))
+        .get('*', stream(srv))
+        .get('*', ODataAdapterMiddleware.read(srv))
+        .put('*', ODataAdapterMiddleware.update(srv, router))
+        .patch('*', ODataAdapterMiddleware.update(srv, router))
+        .delete('*', ODataAdapterMiddleware.delete(srv))
+        .use(ODataAdapterMiddleware.error(srv))
+  }
+}
+
 cds.connect("db").then(async function(somehowThisIsCdsNow){
 
     // const csn = await cds.load('*').then(cds.minify) // cuz why not to load it again
@@ -66,12 +120,11 @@ cds.connect("db").then(async function(somehowThisIsCdsNow){
                 }))
 
                 // for now we will only focus on default v4 protocol
-                const adapterV4 = require('@sap/cds//lib/srv/protocols/odata-v4')
                 const { before, after } = cds.middlewares
 
                 instances.forEach (srv => {
                     for (let { kind, path } of srv.endpoints) {
-                        const adapter = new adapterV4(srv)
+                        const adapter = new ODataAdapter(srv)
                         adapter.path = path
                         app.use(path, before, adapter, after) // ok there it is! our magic
                         cds.emit ('serving', srv)
