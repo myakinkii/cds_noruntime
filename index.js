@@ -3,14 +3,11 @@ const express = require("express")
 const app = express()
 const port = process.env.PORT || 4004
 
-cds.connect("db").then(async function(db){
+cds.connect("db").then(async function(somehowThisIsCdsNow){
 
-    // load and prepare models (we need more global vars!)
-    const csn = await cds.load('*').then(cds.minify)
-    // why we need this?
-    cds.edmxs = cds.compile.to.edmx.files(csn)
-    // this is used at least in metadata handler
-    cds.model = cds.compile.for.nodejs(csn) // but srv.definition === csnService -> true
+    // const csn = await cds.load('*').then(cds.minify) // cuz why not to load it again
+    const csn = cds.minify(somehowThisIsCdsNow.services.db.model) // dunno why minify though
+    cds.model = cds.compile.for.nodejs(csn)
 
     cds.on('bootstrap', (app)=>{
         // not gonna happen
