@@ -23,14 +23,18 @@ cds.connect("db").then(async function(db){
         const { Books, Authors } = service.entities
     })
 
-    // await cds.serve("all").in(app) // to serve all services
-    await cds_serve("all").in(app) // to serve all services
-    // await cds_serve("AdminService").with(require("./srv/admin-service")).in(app)
-    // await cds_serve("CatalogService").with(require("./srv/cat-service")).in(app)
+    // await cds.serve("all").in(app) // to serve all services as it was implemented in cds
+
+    const adminImpl = require("./srv/admin-service")
+    const catalogImpl = require("./srv/cat-service")
+    // await cds_serve("AdminService").with(adminImpl).in(app)
+    // await cds_serve("CatalogService").with(catalogImpl).in(app)
+    await cds_serve("all").with([adminImpl, catalogImpl]).in(app) // to serve all services with impl classess
 
     function cds_serve (som, _options){
         
         const services = som == "all" ? cds.model.services : [cds.model.services[som]]
+        let implClassess = services.reduce( (prev,cur) => Object.assign(prev, { [cur.name]: null }), {})
 
         const o = {..._options} // this later is modified by our from/with/at/to
 
@@ -40,7 +44,12 @@ cds.connect("db").then(async function(db){
                 return this
             },
             with (impl) {
-                o.with = impl;
+                if (Array.isArray(impl)) {
+                    impl.forEach( i => implClassess[i.name] = i)
+                } else { // not to break .with api when it is only a single impl
+                    o.with = impl;
+                    implClassess[impl.name] = impl
+                }
                 return this
             },
             at (path) {
@@ -53,10 +62,8 @@ cds.connect("db").then(async function(db){
             },
             async in (app) {
 
-                const { Service } = cds.service.factory
-
                 const instances = await Promise.all (services.map( async d => {
-                    const srv = await new Service (d.name, cds.model, o)
+                    const srv = await new implClassess[d.name](d.name, cds.model, o)
                     await srv._init()
                     return srv 
                 }))
