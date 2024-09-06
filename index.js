@@ -60,9 +60,9 @@ cds.connect("db").then(async function(somehowThisIsCdsNow){
             async in (app) {
 
                 const instances = await Promise.all (services.map( async d => {
-                    const srv = await new implClassess[d.name](d.name, cds.model, o)
-                    await srv._init()
-                    return srv 
+                    // looks like srv.endpoints are somehow async so we need to await new impl.. weird
+                    const srv = new implClassess[d.name](d.name, cds.model, o)
+                    return srv._init()
                 }))
 
                 // for now we will only focus on default v4 protocol
