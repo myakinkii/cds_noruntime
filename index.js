@@ -12,7 +12,6 @@ cds.load('*').then( async (csn) => { // if we are in gen/srv it will pick up pre
     const model = cds.model = cds.compile.for.nodejs(csn) // this guy needs to be global so far..
 
     const dbService = new MySQLiteService ("db", model, cds.requires.db); 
-    await dbService._init()
 
     class AdminService extends FakeCDSService {
         async handle(req){
