@@ -20,19 +20,27 @@ module.exports = class AdminService extends cds.Service {
   set endpoints(p) {
     // compat to real cds serve
   }
-
+  
   async run(req, data){
     console.log("RUN", typeof req)
-    return super.run(req, data)
+    // return super.run(req, data)
+    if (typeof req === 'function') {
+      const fn = req;
+      return fn(this)
+    } else {
+      return this.dispatch(req)
+    }
   }
 
   async dispatch(req){
     console.log("DISPATCH", req.event, JSON.stringify(req.query))
-    return super.dispatch(req)
+    // return super.dispatch(req)
+    return this.handle(req)
   }
 
   async handle(req){
     console.log("HANDLE", req.event, JSON.stringify(req.query))
+    req.target = req.query.target // patch so that middleware etag shit works
     return super.handle(req)
   }
 
