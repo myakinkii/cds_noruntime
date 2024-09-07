@@ -1,53 +1,56 @@
 const cds = require("@sap/cds")
 const express = require("express")
-const app = express()
-const port = process.env.PORT || 4004
 
-const cds_serve = require('./srv/lib/cds_serve')
-
+const ODataAdapter = require('./srv/lib/ODataAdapter')
 const adminImpl = require("./srv/admin-service")
 const catalogImpl = require("./srv/cat-service")
+const dbImpl = require("./MySQLiteService")
 
-cds.connect("db").then(async function(somehowThisIsCdsNow){
+cds.load('*').then( async (csn) => {
 
-    // const csn = await cds.load('*').then(cds.minify) // cuz why not to load it again
-    const csn = cds.minify(somehowThisIsCdsNow.services.db.model) // dunno why minify though
+    // here goes cds services instantiation part
+
     cds.model = cds.compile.for.nodejs(csn)
 
-    cds.on('bootstrap', (app)=>{
-        // not gonna happen
+    cds.db = cds.services.db = await new dbImpl ("db", cds.model, cds.requires.db); 
+    await cds.db._init()
+
+    return Promise.all([adminImpl, catalogImpl].map( async (impl) => {
+        const srv = await new impl(impl.name, cds.model, {})
+        await srv._init()
+
+        cds.services[srv.name] = srv
+
+        const adapters = []
+        for (let { kind, path } of srv.endpoints) {
+            const adapter = new ODataAdapter(srv)
+            adapter.path = path
+            adapters.push(adapter)
+        }
+        return adapters
+    }))
+}).then( adapters => {
+
+    // here goes express part
+    
+    const app = express()
+    const port = process.env.PORT || 4004
+
+    const { before, after } = cds.middlewares
+
+    adapters.forEach( ([adapter]) => {
+        console.log(`mount odata adapter for ${adapter.path}`)
+        app.use(adapter.path, before, adapter, after)
     })
 
-    if (cds.env.requires.messaging)
-        await cds.connect.to('messaging') // to init messaging
+    app.use(express.static(__dirname+'/../../app')) // to serve static stuff from app
 
-    cds.on('serving', (service) => {
-        const { Books, Authors } = service.entities
-    })
-
-    // await cds.serve("all").in(app) // to serve all services as it was implemented in cds
-    // await cds_serve("AdminService").with(adminImpl).in(app)
-    // await cds_serve("CatalogService").with(catalogImpl).at("/some-endpoint").to("odata-v4").in(app)
-    await cds_serve("all").with([adminImpl, catalogImpl]).in(app) // to serve all services with impl classess
-
-    cds.on('served', (services)=>{
-        const { CatalogService, AdminService, db } = services
-    })
-
-    await cds.emit ('served', cds.services) // all services served now
-
-    app.use(express.static(__dirname+'/../../app')) // to serve static app 
     app.get('/', (req, res) => res.send("ok\n"))
+
     const server = app.listen(port)
+
     server.on("error", error => console.error(error.stack))
 
-    // file-based messaging will start watching the ~/.cds-msg-box now
-    await cds.emit ('listening', {server})
-
-    console.log(`running with profiles ${cds.env.profiles}`)
     console.log(`cds listening on port ${port}`)
-    console.log(`app router stack:\n ${app._router.stack.map( s => {
-        if (s.name == 'router') return s.handle.stack.map(h => s.name + ' > ' + s.handle.path + ' > ' + h.name ).join("\n")
-        return s.name + ' > ' + (s.path||s.regexp)
-    }).join("\n")}`)
+
 })

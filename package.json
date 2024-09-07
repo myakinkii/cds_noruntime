@@ -25,7 +25,6 @@
       "db": {
         "kind": "sqlite",
         "impl": "MySQLiteService.js",
-        "model": "srv/csn.json",
         "credentials": {
           "url": "db.sqlite"
         }
