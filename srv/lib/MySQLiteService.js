@@ -14,13 +14,16 @@ module.exports = class MySQLiteService extends SQLiteService {
         return this.dispatch(new Request({ method, path, data, headers }))
     }
 
+    tx(fn) {
+        const expectedRootTransaction = srv_tx.call(this, fn)
+        return expectedRootTransaction
+    }
+
     async run(query, data) {
         console.log("DB.RUN", typeof query)
         if (typeof query === 'function') {
             const fn = query;
-            const expectedRootTransaction = srv_tx.call(this, fn)
-            return expectedRootTransaction
-            // return this.tx(fn) // here this guy does some magic with srv_tx
+            return this.tx(fn) // here we get us root transaction
         } else {
             // this is some magic to acquire tx
             // resembles to what happens in odata middleware: run + dispatch
