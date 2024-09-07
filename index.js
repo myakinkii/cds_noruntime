@@ -57,7 +57,7 @@ cds.load('*').then( async (csn) => { // if we are in gen/srv it will pick up pre
         app.use(adapter.path, before, adapter, after)
     })
 
-    app.use(express.static(__dirname+'/../../app')) // to serve static stuff from app
+    app.use(express.static(__dirname+'/app')) // to serve static stuff from app
 
     app.get('/', (req, res) => res.send("ok\n"))
 
