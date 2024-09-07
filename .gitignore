@@ -1,7 +1,7 @@
 # CAP cds_noruntime
 _out
 *.db
-*.sqlite
+*.sqlite*
 connection.properties
 default-*.json
 .cdsrc-private.json

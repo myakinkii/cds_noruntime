@@ -21,11 +21,11 @@ module.exports = class MySQLiteService extends SQLiteService {
             const expectedRootTransaction = srv_tx.call(this, fn)
             return expectedRootTransaction
             // return this.tx(fn) // here this guy does some magic with srv_tx
-        } else { 
+        } else {
             // this is some magic to acquire tx
             // resembles to what happens in odata middleware: run + dispatch
             const req = new Request({ query, data })
-            return this.run (tx => tx.dispatch(req))
+            return this.run(tx => tx.dispatch(req))
         }
     }
 
@@ -37,16 +37,16 @@ module.exports = class MySQLiteService extends SQLiteService {
     async handle(req) {
         console.log("DB.HANDLE", req.event, JSON.stringify(req.query))
 
-        if (req.event in {'BEGIN':1, 'COMMIT':1, 'ROLLBACK':1}) return this.exec(req.event)
-        
+        if (req.event in { 'BEGIN': 1, 'COMMIT': 1, 'ROLLBACK': 1 }) return this.exec(req.event)
+
         const { query, data } = req
         const { sql, values, entries, cqn } = this.cqn2sql(query, data) // lots of magic here
         // also renders and console logs sql at this moment
 
         const ps = await this.prepare(sql)
         let results
-        if (req.event == 'READ' ) {
-            results = await ps.all(values) 
+        if (req.event == 'READ') {
+            results = await ps.all(values)
         } else {
             results = entries ? await Promise.all(entries.map(v => ps.run(v))) : await ps.run()
         }
