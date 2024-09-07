@@ -8,7 +8,7 @@ module.exports = class AdminService extends cds.Service {
     this.before ('NEW', Books.drafts, this.genid)
 
     // generic crud handler is just cds.db.run
-    this.on(['CREATE', 'READ', 'UPDATE', 'DELETE', 'UPSERT'], '*', async (req) => cds.db.run(req.query, req.data))
+    // this.on(['CREATE', 'READ', 'UPDATE', 'DELETE', 'UPSERT'], '*', async (req) => cds.db.run(req.query, req.data))
 
     return super.init()
   }
@@ -41,7 +41,8 @@ module.exports = class AdminService extends cds.Service {
   async handle(req){
     console.log("HANDLE", req.event, JSON.stringify(req.query))
     req.target = req.query.target // patch so that middleware etag shit works
-    return super.handle(req)
+    // return super.handle(req)
+    return cds.db.run(req.query, req.data)
   }
 
   // Generate primary keys for target entity in request
