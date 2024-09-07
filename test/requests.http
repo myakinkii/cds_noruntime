@@ -13,6 +13,11 @@ GET {{adminServiceURL}}/$metadata
 Authorization: {{authentication}}
 
 
+### get catalog ListOfBooks
+GET {{catServiceURL}}/ListOfBooks
+Authorization: {{authentication}}
+
+
 ### create author
 @date = {{ $datetime 'YYYY-MM-DD' 1 d }}
 POST {{adminServiceURL}}/Authors
@@ -33,5 +38,6 @@ Content-Type: application/json
 {
     "ID"  : 666,
     "title": "Satan bible",
-    "author_ID": 666
+    "author_ID": 666,
+    "stock":666
 }
