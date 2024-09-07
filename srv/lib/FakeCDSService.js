@@ -26,7 +26,7 @@ module.exports = class FakeCDSService  {
   }
 
   async dispatch(req){
-    console.log("DISPATCH", req.event, JSON.stringify(req.query))
+    console.log("DISPATCH", req.event, req.query.target.name)
     return this.handle(req)
   }
 

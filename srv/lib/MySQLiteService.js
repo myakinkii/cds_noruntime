@@ -26,7 +26,7 @@ module.exports = class MySQLiteService extends SQLiteService {
     }
 
     async dispatch(req) {
-        console.log("DB.DISPATCH", req.event, JSON.stringify(req.query))
+        console.log("DB.DISPATCH", req.event, req.query?.target?.name)
         return this.handle(req)
     }
 
