@@ -14,7 +14,7 @@ Authorization: {{authentication}}
 
 
 ### get catalog ListOfBooks
-GET {{catServiceURL}}/ListOfBooks
+GET {{catServiceURL}}/Books
 Authorization: {{authentication}}
 
 

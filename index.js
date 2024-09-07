@@ -5,6 +5,9 @@ const port = process.env.PORT || 4004
 
 const cds_serve = require('./srv/lib/cds_serve')
 
+const adminImpl = require("./srv/admin-service")
+const catalogImpl = require("./srv/cat-service")
+
 cds.connect("db").then(async function(somehowThisIsCdsNow){
 
     // const csn = await cds.load('*').then(cds.minify) // cuz why not to load it again
@@ -23,9 +26,6 @@ cds.connect("db").then(async function(somehowThisIsCdsNow){
     })
 
     // await cds.serve("all").in(app) // to serve all services as it was implemented in cds
-
-    const adminImpl = require("./srv/admin-service")
-    const catalogImpl = require("./srv/cat-service")
     // await cds_serve("AdminService").with(adminImpl).in(app)
     // await cds_serve("CatalogService").with(catalogImpl).at("/some-endpoint").to("odata-v4").in(app)
     await cds_serve("all").with([adminImpl, catalogImpl]).in(app) // to serve all services with impl classess

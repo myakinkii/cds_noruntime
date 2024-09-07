@@ -1,12 +1,13 @@
 const cds = require('@sap/cds')
-const { Books } = cds.entities ('sap.capire.bookshop')
 
 module.exports = class CatalogService extends cds.ApplicationService { 
   
   init(){
+    
+    const { Books } = this.entities
 
     this.on ('submitOrder', this.handleSubmitOrder)
-    this.after ('READ', 'ListOfBooks', this.afterRead)
+    this.after ('READ', Books, this.afterRead)
 
     return super.init()
   }
