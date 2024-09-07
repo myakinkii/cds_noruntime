@@ -25,7 +25,7 @@ cds.load('*').then( async (csn) => {
         const _slugified = name => /[^.]+$/.exec(name)[0].replace(/Service$/,'').replace(/_/g,'-').replace(/([a-z0-9])([A-Z])/g, (_,c,C) => c+'-'+C).toLowerCase()
 
         const srv = cds.services[impl.name] = new impl(impl.name, cds.model, { to:"odata-v4", at: "/odata/v4/"+_slugified(impl.name) })
-        await srv._init()
+        // await srv._init()
 
         const [{ kind, path}] = srv.endpoints // assume just one
         const adapter = new ODataAdapter(srv)
