@@ -5,6 +5,15 @@ const SQLiteService = require('@cap-js/sqlite')
 
 module.exports = class MySQLiteService extends SQLiteService {
 
+    send(method, path, data, headers) {// stolen from srv-api, but we only receive BEGIN COMMIT ROLBACK here
+        console.log("DB.SEND", method)
+        const is_object = (x) => typeof x === 'object'
+        if (method instanceof Request) return this.dispatch(method)
+        if (is_object(method)) return this.dispatch(new Request(method))
+        if (is_object(path)) return this.dispatch(new Request({ method, data: path, headers: data }))
+        return this.dispatch(new Request({ method, path, data, headers }))
+    }
+
     async run(query, data) {
         console.log("DB.RUN", typeof query)
         if (typeof query === 'function') {
