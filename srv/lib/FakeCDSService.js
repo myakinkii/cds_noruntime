@@ -1,5 +1,3 @@
-const srv_tx = require('@sap/cds/lib/srv/srv-tx')
-
 module.exports = class FakeCDSService  {
   
   constructor (name, model, o) {
@@ -15,11 +13,6 @@ module.exports = class FakeCDSService  {
 
   set endpoints(p) {
     // compat to real cds serve
-  }
-  
-  tx(fn) { // this stuff kinda fixes batch, but only provides root transaction
-    const expectedRootTransaction = srv_tx.call(this, fn)
-    return expectedRootTransaction
   }
   
   async run(req, data){

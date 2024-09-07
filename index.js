@@ -5,15 +5,30 @@ const MySQLiteService = require("./srv/lib/MySQLiteService")
 const FakeCDSService = require('./srv/lib/FakeCDSService')
 const ODataAdapter = require('./srv/lib/ODataAdapter')
 
+const srv_tx = require('@sap/cds/lib/srv/srv-tx') // tx magic
+
 cds.load('*').then( async (csn) => { // if we are in gen/srv it will pick up prebuilt csn.json
 
     // here goes cds part
 
     const model = cds.model = cds.compile.for.nodejs(csn) // this guy needs to be global so far..
 
-    const dbService = new MySQLiteService ("db", model, cds.requires.db); 
+    class DBWithExternalTX extends MySQLiteService {
+        tx(fn) {
+            const expectedRootTransaction = srv_tx.call(this, fn)
+            return expectedRootTransaction
+        }
+    }
+
+    const dbService = new DBWithExternalTX ("db", model, cds.requires.db); 
 
     class AdminService extends FakeCDSService {
+
+        tx(fn) {
+            const expectedRootTransaction = srv_tx.call(this, fn)
+            return expectedRootTransaction
+        }
+
         async handle(req){
             console.log("HANDLE", req.event, JSON.stringify(req.query))
             req.target = req.query.target // patch so that middleware etag shit works
@@ -22,6 +37,12 @@ cds.load('*').then( async (csn) => { // if we are in gen/srv it will pick up pre
     }
 
     class CatalogService extends FakeCDSService {
+
+        tx(fn) {
+            const expectedRootTransaction = srv_tx.call(this, fn)
+            return expectedRootTransaction
+        }
+
         async handle(req){
             console.log("HANDLE", req.event, JSON.stringify(req.query))
             req.target = req.query.target // patch so that middleware etag shit works

@@ -1,6 +1,4 @@
-const cds = require('@sap/cds')
-const { Event, Request } = cds
-const srv_tx = require('@sap/cds/lib/srv/srv-tx')
+const { Request } = require('@sap/cds')
 const SQLiteService = require('@cap-js/sqlite')
 
 module.exports = class MySQLiteService extends SQLiteService {
@@ -12,11 +10,6 @@ module.exports = class MySQLiteService extends SQLiteService {
         if (is_object(method)) return this.dispatch(new Request(method))
         if (is_object(path)) return this.dispatch(new Request({ method, data: path, headers: data }))
         return this.dispatch(new Request({ method, path, data, headers }))
-    }
-
-    tx(fn) {
-        const expectedRootTransaction = srv_tx.call(this, fn)
-        return expectedRootTransaction
     }
 
     async run(query, data) {
