@@ -1,25 +1,16 @@
 # Getting Started
 
-Welcome to your new project.
+Here we try to replace cds runtime with something else.
 
-It contains these folders and files, following our recommended project layout:
+So far we managed to make a direct link between new ODataAdapter and DB layer,
+meaning we only have generic handlers enabled
 
-File or Folder | Purpose
----------|----------
-`app/` | content for UI frontends goes here
-`db/` | your domain models and data go here
-`srv/` | your service models and code go here
-`package.json` | project metadata and configuration
-`readme.md` | this getting started guide
+The idea is to investigate middlewares and db layers further to see if we can introduce some other runtime for controllers.
 
+Also motivation is to figure out how transaction handling really works in cds
 
-## Next Steps
+## Run stuff
 
-- Open a new terminal and run `cds watch`
-- (in VS Code simply choose _**Terminal** > Run Task > cds watch_)
-- Start adding content, for example, a [db/schema.cds](db/schema.cds).
-
-
-## Learn More
-
-Learn more at https://cap.cloud.sap/docs/get-started/.
+- Regular unhacked cds `npm run serve`
+- Hacked stuff with db/data `npm start`
+- Hacked stuff with prebuilt csn.json in gen/srv `npm run prebuilt`

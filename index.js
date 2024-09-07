@@ -5,7 +5,7 @@ const MySQLiteService = require("./MySQLiteService")
 const FakeCDSService = require('./srv/lib/FakeCDSService')
 const ODataAdapter = require('./srv/lib/ODataAdapter')
 
-cds.load('*').then( async (csn) => {
+cds.load('*').then( async (csn) => { // if we are in gen/srv it will pick up prebuilt csn.json
 
     // here goes cds part
 
