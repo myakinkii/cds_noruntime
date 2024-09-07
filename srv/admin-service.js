@@ -7,11 +7,8 @@ module.exports = class AdminService extends cds.Service {
 
     this.before ('NEW', Books.drafts, this.genid)
 
-    // these are our generic crud handlers
-    this.on(['CREATE', 'READ', 'UPDATE', 'DELETE', 'UPSERT'], '*', async function (req) {
-      const result = await cds.tx(req).run(req.query, req.data)
-      return result
-    })
+    // generic crud handler is just cds.db.run
+    this.on(['CREATE', 'READ', 'UPDATE', 'DELETE', 'UPSERT'], '*', async (req) => cds.db.run(req.query, req.data))
 
     return super.init()
   }
