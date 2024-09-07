@@ -5,13 +5,17 @@ const port = process.env.PORT || 4004
 
 
 const jsonBodyParser = express.json()
-const BaseProtocolAdapter = require('@sap/cds/lib/srv/protocols/http')
-const { isStream, stream } = require('@sap/cds/libx/odata/middleware/stream')
+const HttpAdapter = require('@sap/cds/lib/srv/protocols/http')
+const { isStream } = require('@sap/cds/libx/odata/middleware/stream')
 
 const ODataAdapterMiddleware = {
+    odata_version: function(req, res, next) {
+        res.set('OData-Version', '4.0')
+        next()
+    },
     sericeDocument : require('@sap/cds/libx/odata/middleware/service-document'),
     metadata : require('@sap/cds/libx/odata/middleware/metadata'),
-    parse: require('@sap/cds/libx/odata/middleware/parse'), // cds.odata.parse wtf???
+    parse: require('@sap/cds/libx/odata/middleware/parse'), // cds.odata.parse added globally in cds.lib
     batch: require('@sap/cds/libx/odata/middleware/batch'),
     operation: require('@sap/cds/libx/odata/middleware/operation'), // functions + actions
     create: require('@sap/cds/libx/odata/middleware/create'),
@@ -19,41 +23,59 @@ const ODataAdapterMiddleware = {
     update :require('@sap/cds/libx/odata/middleware/update'), // put + patch
     delete: require('@sap/cds/libx/odata/middleware/delete'),
     error: require('@sap/cds/libx/odata/middleware/error'),
-    odata_streams: function (req, res, next) { // this is going to have more fun in cds8..
-        // REVISIT: body of batch subrequests are already deserialized
-        if (typeof req.body === 'object') return next()
+    stream: require('@sap/cds/libx/odata/middleware/stream'),
+    odata_streams(req, res, next) {
         if (req.method === 'PUT' && isStream(req._query)) {
-            req.body = { value: req }
-            return next()
+          req.body = { value: req }
+          return next()
         }
-        // TODO: check if the raw body still exists, then we can remove deepCopy() in the handlers
+        if (req.method === 'POST' && req.headers['content-type']?.match(/multipart\/mixed/)) {
+          return next()
+        }
+        if (req.method in { POST: 1, PUT: 1, PATCH: 1 } && req.headers['content-type']) {
+          const parts = req.headers['content-type'].split(';')
+          // header ending with semicolon is not allowed
+          if (!parts[0].match(/^application\/json$/) || parts[1] === '') {
+            throw cds.error('415', { statusCode: 415, code: '415' }) // FIXME: use res.status
+          }
+        }
+        // POST with empty body is allowed by actions
+        if (req.method in { PUT: 1, PATCH: 1 }) {
+          if (req.headers['content-length'] === '0') {
+            res.status(400).json({ error: { message: 'Expected non-empty body', statusCode: 400, code: '400' } })
+            return
+          }
+        }
+
         return jsonBodyParser(req, res, next)
-    }
+      }
 }
 
-class ODataAdapter extends BaseProtocolAdapter {
+class ODataAdapter extends HttpAdapter {
   log(req) {
     // simplest ever
     console.log(req.method, req.baseUrl, req.url)
   }
   
-  router4(srv) {
-    const router = super.router4(srv)
-    return router.use(/^\/$/, ODataAdapterMiddleware.sericeDocument(srv))
-        .use('/\\$metadata', ODataAdapterMiddleware.metadata(srv))
-        .use(ODataAdapterMiddleware.parse(srv))
+  get router() {
+    return super.router.use(ODataAdapterMiddleware.odata_version)
+        .use(/^\/$/, ODataAdapterMiddleware.sericeDocument(this))
+        .use('/\\$metadata', ODataAdapterMiddleware.metadata(this))
+        .use(ODataAdapterMiddleware.parse(this))
         .use(ODataAdapterMiddleware.odata_streams)
-        .post('/\\$batch', ODataAdapterMiddleware.batch(srv, router))
+        .post('/\\$batch', ODataAdapterMiddleware.batch(this))
         .head('*', (_, res) => res.sendStatus(405))
-        .post('*', ODataAdapterMiddleware.operation(srv)) //> action
-        .get('*', ODataAdapterMiddleware.operation(srv)) //> function
-        .post('*', ODataAdapterMiddleware.create(srv))
-        .get('*', stream(srv))
-        .get('*', ODataAdapterMiddleware.read(srv))
-        .put('*', ODataAdapterMiddleware.update(srv, router))
-        .patch('*', ODataAdapterMiddleware.update(srv, router))
-        .delete('*', ODataAdapterMiddleware.delete(srv))
-        .use(ODataAdapterMiddleware.error(srv))
+        .post('*', ODataAdapterMiddleware.create(this))
+        .post('*', ODataAdapterMiddleware.operation(this)) //> action
+        .get('*', ODataAdapterMiddleware.operation(this)) //> function
+        .get('*', ODataAdapterMiddleware.stream(this))
+        .get('*', ODataAdapterMiddleware.read(this))
+        .put('*', ODataAdapterMiddleware.update(this))
+        .put('*', ODataAdapterMiddleware.create(this, 'upsert'))
+        .patch('*', ODataAdapterMiddleware.update(this))
+        .patch('*', ODataAdapterMiddleware.create(this, 'upsert'))
+        .delete('*', ODataAdapterMiddleware.delete(this))
+        .use(ODataAdapterMiddleware.error(this))
   }
 }
 

@@ -6,7 +6,7 @@
   "license": "UNLICENSED",
   "private": true,
   "dependencies": {
-    "@sap/cds": "^7",
+    "@sap/cds": "^8.2.1",
     "express": "^4"
   },
   "devDependencies": {
@@ -17,14 +17,16 @@
     "start": "cds build && cd gen/srv && cds deploy && node index.js"
   },
   "cds": {
-    "features":{
-      "odata_new_adapter":true
+    "features": {
+      "odata_new_adapter": true
     },
     "requires": {
-      "db":{
+      "db": {
         "kind": "sqlite",
-        "model":"srv/csn.json",
-        "credentials": { "url": "db.sqlite" }
+        "model": "srv/csn.json",
+        "credentials": {
+          "url": "db.sqlite"
+        }
       }
     }
   }
