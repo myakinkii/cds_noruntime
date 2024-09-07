@@ -56,6 +56,10 @@ class ODataAdapter extends HttpAdapter {
     // simplest ever
     console.log(req.method, req.baseUrl, req.url)
   }
+
+  request4(args) {
+    return new NoaRequest(args)
+  }
   
   get router() {
     return super.router.use(ODataAdapterMiddleware.odata_version)
@@ -78,6 +82,19 @@ class ODataAdapter extends HttpAdapter {
         .use(ODataAdapterMiddleware.error(this))
   }
 }
+
+// REVISIT: ugly hack -> eliminate
+class NoaRequest extends cds.Request {
+    // REVISIT: all usages of .protocol are very bad style, violating modularization
+    get protocol() {
+      return 'odata'
+    }
+    // AFC uses unofficial req._queryOptions -> which is bad! -> should eliminate
+    get _queryOptions() {
+      cds.utils.deprecated({ kind: '', old: 'req._queryOptions', new: 'req._.req.query' })
+      return this.req?.query
+    }
+  }
 
 function cds_serve (som, _options){
         
