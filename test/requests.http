@@ -41,3 +41,7 @@ Content-Type: application/json
     "author_ID": 666,
     "stock":666
 }
+
+### delete book
+DELETE {{adminServiceURL}}/Books(666)
+Authorization: {{authentication}}

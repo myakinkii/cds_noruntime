@@ -47,6 +47,8 @@ module.exports = class MySQLiteService extends SQLiteService {
         let results
         if (req.event == 'READ') {
             results = await ps.all(values)
+        } else if (req.event == 'DELETE') {
+            results = await ps.run(values)
         } else {
             results = entries ? await Promise.all(entries.map(v => ps.run(v))) : await ps.run()
         }
