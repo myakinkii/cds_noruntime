@@ -20,6 +20,10 @@ module.exports = class AdminService extends cds.Service {
     return [{ kind: this.options.to || "odata", path: this.options.at || "/odata/v4/" + this.name.toLowerCase()}]
   }
 
+  set endpoints(p) {
+    // compat to real cds serve
+  }
+
   async run(req, data){
     console.log("RUN", typeof req)
     return super.run(req, data)
