@@ -1,30 +1,41 @@
 const cds = require("@sap/cds")
 const express = require("express")
 
+const MySQLiteService = require("./MySQLiteService")
+const FakeCDSService = require('./srv/lib/FakeCDSService')
 const ODataAdapter = require('./srv/lib/ODataAdapter')
-const adminImpl = require("./srv/admin-service")
-const catalogImpl = require("./srv/cat-service")
-const dbImpl = require("./MySQLiteService")
 
 cds.load('*').then( async (csn) => {
 
-    // here goes cds.model and db service init
+    // here goes cds part
 
-    cds.model = cds.compile.for.nodejs(csn)
+    const model = cds.model = cds.compile.for.nodejs(csn) // this guy needs to be global so far..
 
-    cds.db = cds.services.db = await new dbImpl ("db", cds.model, cds.requires.db); 
-    await cds.db._init()
+    const dbService = new MySQLiteService ("db", model, cds.requires.db); 
+    await dbService._init()
 
-}).then( () => {
+    class AdminService extends FakeCDSService {
+        async handle(req){
+            console.log("HANDLE", req.event, JSON.stringify(req.query))
+            req.target = req.query.target // patch so that middleware etag shit works
+            return dbService.run(req.query, req.data) // call instance of our "db" service
+        }
+    }
 
-    // here goes app services init
+    class CatalogService extends FakeCDSService {
+        async handle(req){
+            console.log("HANDLE", req.event, JSON.stringify(req.query))
+            req.target = req.query.target // patch so that middleware etag shit works
+            return dbService.run(req.query, req.data) // call instance of our "db" service
+        }
+    }
 
-    return Promise.all([adminImpl, catalogImpl].map( async (impl) => {
+    return Promise.all([AdminService, CatalogService].map( async (impl) => {
 
         //stolen from lib/srv/protocols/index.js
         const _slugified = name => /[^.]+$/.exec(name)[0].replace(/Service$/,'').replace(/_/g,'-').replace(/([a-z0-9])([A-Z])/g, (_,c,C) => c+'-'+C).toLowerCase()
 
-        const srv = cds.services[impl.name] = new impl(impl.name, cds.model, { to:"odata-v4", at: "/odata/v4/"+_slugified(impl.name) })
+        const srv = new impl(impl.name, model, { to:"odata-v4", at: "/odata/v4/"+_slugified(impl.name) })
         // await srv._init()
 
         const [{ kind, path}] = srv.endpoints // assume just one

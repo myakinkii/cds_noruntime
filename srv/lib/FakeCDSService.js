@@ -1,6 +1,4 @@
-const cds = require('@sap/cds')
-
-module.exports = class CatalogService  {
+module.exports = class FakeCDSService  {
   
   constructor (name, model, o) {
     this.name = name
@@ -34,8 +32,6 @@ module.exports = class CatalogService  {
 
   async handle(req){
     console.log("HANDLE", req.event, JSON.stringify(req.query))
-    req.target = req.query.target // patch so that middleware etag shit works
-    return cds.db.run(req.query, req.data)
   }
 
 }
