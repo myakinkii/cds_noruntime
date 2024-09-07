@@ -17,6 +17,10 @@ module.exports = class CatalogService extends cds.Service {
     return super.init()
   }
 
+  get endpoints() { 
+    return [{ kind: this.options.to || "odata", path: this.options.at || "/odata/v4/" + this.name.toLowerCase()}]
+  }
+
   async run(req, data){
     console.log("RUN", typeof req)
     return super.run(req, data)
