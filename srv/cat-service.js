@@ -1,12 +1,18 @@
 const cds = require('@sap/cds')
 
-module.exports = class CatalogService extends cds.ApplicationService { 
+module.exports = class CatalogService extends cds.Service { 
   
   init(){
     const { Books } = this.entities
 
     this.on ('submitOrder', this.handleSubmitOrder)
     this.after ('READ', Books, this.afterRead)
+
+    // these are our generic crud handlers
+    this.on(['CREATE', 'READ', 'UPDATE', 'DELETE', 'UPSERT'], '*', async function (req) {
+      const result = await cds.tx(req).run(req.query, req.data)
+      return result
+    })
 
     return super.init()
   }
