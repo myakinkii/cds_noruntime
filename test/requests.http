@@ -13,7 +13,7 @@ GET {{adminServiceURL}}/$metadata
 Authorization: {{authentication}}
 
 
-### get catalog ListOfBooks
+### get catalog Books
 GET {{catServiceURL}}/Books
 Authorization: {{authentication}}
 
