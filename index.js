@@ -1,7 +1,7 @@
 const cds = require("@sap/cds")
 const express = require("express")
 
-const MySQLiteService = require("./MySQLiteService")
+const MySQLiteService = require("./srv/lib/MySQLiteService")
 const FakeCDSService = require('./srv/lib/FakeCDSService')
 const ODataAdapter = require('./srv/lib/ODataAdapter')
 

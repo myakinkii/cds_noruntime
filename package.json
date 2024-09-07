@@ -25,7 +25,6 @@
     "requires": {
       "db": {
         "kind": "sqlite",
-        "impl": "MySQLiteService.js",
         "credentials": {
           "url": "db.sqlite"
         }
