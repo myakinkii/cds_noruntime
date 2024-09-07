@@ -3,7 +3,7 @@ const express = require('express')
 
 const jsonBodyParser = express.json()
 const HttpAdapter = require('@sap/cds/lib/srv/protocols/http')
-const { isStream } = require('@sap/cds/libx/odata/middleware/stream')
+const { isStream } = require('@sap/cds/libx/odata/utils')
 
 const ODataAdapterMiddleware = {
     odata_version: function (req, res, next) {
