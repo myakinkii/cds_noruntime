@@ -1,0 +1,26 @@
+@baseURL = http://localhost:3000
+@serviceURL = {{baseURL}}/rest/v1/srv
+@authentication = Basic alice:secret
+
+### get root
+GET {{baseURL}}/
+Authorization: {{authentication}}
+
+
+### get Books
+GET {{serviceURL}}/Books
+Authorization: {{authentication}}
+
+
+### post Books
+POST {{serviceURL}}/Books
+Authorization: {{authentication}}
+Content-Type: application/json
+
+{
+    "ID"  : 666,
+    "title": "Satan bible",
+    "author_ID": 666,
+    "genre_ID": 666,
+    "stock":666
+}

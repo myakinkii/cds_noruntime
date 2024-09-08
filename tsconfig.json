@@ -1,8 +1,11 @@
 {
     "compilerOptions": {
+        "noEmitOnError": false,
         "module": "commonjs",
         "target": "ES2021",
         "outDir": "./dist",
-        "baseUrl": "./"
+        "baseUrl": "./",
+        "emitDecoratorMetadata": true,
+        "experimentalDecorators": true
     }
 }
