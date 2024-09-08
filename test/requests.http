@@ -30,6 +30,20 @@ Content-Type: application/json
     "dateOfBirth" : "{{date}}"
 }
 
+
+### create genre
+POST {{adminServiceURL}}/Genres
+Authorization: {{authentication}}
+Content-Type: application/json
+
+{
+    "ID"  : 666,
+    "parent_ID": null,
+    "name": "Holy books",
+    "descr": "Can be highly opinionated"
+}
+
+
 ### create book
 POST {{adminServiceURL}}/Books
 Authorization: {{authentication}}
@@ -39,8 +53,15 @@ Content-Type: application/json
     "ID"  : 666,
     "title": "Satan bible",
     "author_ID": 666,
+    "genre_ID": 666,
     "stock":666
 }
+
+
+### get Book 666 with expands - expanded object is a string!
+GET {{catServiceURL}}/Books(666)?$select=title,author&$expand=genre
+Authorization: {{authentication}}
+
 
 ### delete book
 DELETE {{adminServiceURL}}/Books(666)
