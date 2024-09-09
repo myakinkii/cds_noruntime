@@ -1,9 +1,14 @@
 import { Module, NestModule, RequestMethod, MiddlewareConsumer } from '@nestjs/common';
 import { Controller, Get, Post, Req, Res, HttpStatus } from '@nestjs/common';
+import { Injectable, OnModuleInit, Inject} from '@nestjs/common';
 import { Request, Response, NextFunction } from 'express';
 
 @Controller('rest/v1/admin')
 export class AdminController {
+
+    @Inject('db')
+    dbService: any
+
     @Get('*')
     get(@Res() res: Response) {
         res.status(HttpStatus.OK).json([])
@@ -16,6 +21,7 @@ export class AdminController {
 
 import { Service } from '@sap/cds'
 import { load_cds_model, create_odata_adapter} from '../srv/lib/cds_init'
+import { DBModule } from './db.provider';
 
 const cds = require('@sap/cds')
 const srv_tx = require('@sap/cds/lib/srv/srv-tx') // tx magic
@@ -31,19 +37,30 @@ class AdminService extends FakeCDSService {
     async handle(req){
         console.log("HANDLE", req.event, JSON.stringify(req.query))
         req.target = req.query.target // patch so that middleware etag shit works
-        return
-        // return dbService.run(req.query, req.data) // call instance of our "db" service
+        return this.dbService.run(req.query, req.data) // call instance of our "db" service
     }
 }
 
-@Module({
-    controllers: [AdminController]
-})
-export class AdminModule implements NestModule {
+import {ModuleRef} from '@nestjs/core'
 
+@Module({
+    controllers: [AdminController],
+    imports: [DBModule]
+})
+export class AdminModule implements NestModule, OnModuleInit {
+
+    private odataService: AdminService
+
+    constructor(private moduleRef: ModuleRef) {}
+
+    onModuleInit() {
+        this.odataService.dbService = this.moduleRef.get(AdminController).dbService
+    }
+    
     async configure(consumer: MiddlewareConsumer) {
         return load_cds_model().then(cdsmodel => {
-            return new (AdminService as Service)('AdminService', cdsmodel, { at: '/odata/v4/admin' })
+            this.odataService = new (AdminService as Service)('AdminService', cdsmodel, { at: '/odata/v4/admin' })
+            return this.odataService
         }).then(create_odata_adapter).then( adapter => {
             const { before, after } = cds.middlewares
             console.log(`mount odata adapter for ${adapter.path}`)
