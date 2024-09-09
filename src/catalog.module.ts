@@ -5,6 +5,7 @@ import { Request, Response, NextFunction } from 'express';
 import {ModuleRef} from '@nestjs/core'
 
 import { CDSModule, CDSWithExternalTX, DBWithExternalTX, Service, get_cds_middlewares_for } from './cds.provider'
+import { SELECT, INSERT, UPDATE, DELETE } from './cds.provider'
 
 @Controller('rest/v1/catalog')
 export class CatalogController {
@@ -13,8 +14,9 @@ export class CatalogController {
     dbService: DBWithExternalTX
 
     @Get('*')
-    get(@Res() res: Response) {
-        res.status(HttpStatus.OK).json([])
+    get(@Req() req: Request, @Res() res: Response) {
+        req.query = SELECT.from`CatalogService.Books`
+        return (this.dbService as Service).run(req.query)
     }
     @Post('*')
     create(@Req() req: Request, @Res() res: Response) {

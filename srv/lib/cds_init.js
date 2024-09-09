@@ -1,6 +1,8 @@
 const cds = require('@sap/cds')
 const srv_tx = require('@sap/cds/lib/srv/srv-tx') // tx magic
 
+const { SELECT, INSERT, UPDATE, DELETE } = cds.ql
+
 const MySQLiteService = require('./MySQLiteService')
 const FakeCDSService = require('./FakeCDSService')
 const ODataAdapter = require('./ODataAdapter')
@@ -95,5 +97,6 @@ module.exports = {
     get_db_opts,
     create_odata_adapter,
     MySQLiteService,
-    FakeCDSService
+    FakeCDSService,
+    SELECT, INSERT, UPDATE, DELETE
 }

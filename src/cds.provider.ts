@@ -2,6 +2,7 @@ import { Service } from '@sap/cds'
 export { Service } from '@sap/cds'
 
 import { load_cds_model, get_tx_for, get_db_opts, FakeCDSService, MySQLiteService } from '../srv/lib/cds_init'
+export { SELECT, INSERT, UPDATE, DELETE } from '../srv/lib/cds_init'
 export { get_cds_middlewares_for } from '../srv/lib/cds_init'
 
 export class CDSWithExternalTX extends FakeCDSService {

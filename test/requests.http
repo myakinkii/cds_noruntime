@@ -1,4 +1,4 @@
-@baseURL = http://localhost:4004
+@baseURL = http://localhost:3000
 @catServiceURL = {{baseURL}}/odata/v4/catalog
 @adminServiceURL = {{baseURL}}/odata/v4/admin
 @authentication = Basic alice:secret

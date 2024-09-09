@@ -5,6 +5,7 @@ import { Request, Response, NextFunction } from 'express';
 import {ModuleRef} from '@nestjs/core'
 
 import { CDSModule, CDSWithExternalTX, DBWithExternalTX, Service, get_cds_middlewares_for } from './cds.provider'
+import { SELECT, INSERT, UPDATE, DELETE } from './cds.provider'
 
 @Controller('rest/v1/admin')
 export class AdminController {
@@ -13,12 +14,13 @@ export class AdminController {
     dbService: DBWithExternalTX
 
     @Get('*')
-    get(@Res() res: Response) {
+    get(@Req() req: Request, @Res() res: Response) {
         res.status(HttpStatus.OK).json([])
     }
     @Post('*')
     create(@Req() req: Request, @Res() res: Response) {
-        res.status(HttpStatus.CREATED).send(req.body)
+        req.query = INSERT.into`AdminService.Books`.entries(req.body)
+        return (this.dbService as Service).run(req.query)
     }
 }
 
