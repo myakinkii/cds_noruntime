@@ -2,10 +2,11 @@ import { Service } from '@sap/cds'
 export { Service } from '@sap/cds'
 
 import { load_cds_model, get_tx_for, get_db_opts, FakeCDSService, MySQLiteService } from '../srv/lib/cds_init'
+export { get_cds_middlewares_for } from '../srv/lib/cds_init'
 
 export class CDSWithExternalTX extends FakeCDSService {
 
-    dbService: any // injected later via onModuleInit
+    dbService: DBWithExternalTX // injected later via onModuleInit
 
     tx(fn) {
         return get_tx_for(this, fn)
@@ -16,7 +17,7 @@ export class CDSWithExternalTX extends FakeCDSService {
         req.target = req.query.target // patch so that middleware etag shit works
 
          // call instance of our "db" service that we got from controller 
-        return this.dbService.run(req.query, req.data)
+        return (this.dbService as Service).run(req.query, req.data)
     }
 }
 

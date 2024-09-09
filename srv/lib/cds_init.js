@@ -28,6 +28,12 @@ function get_db_opts(){
     return cds.requires.db
 }
 
+function get_cds_middlewares_for(srv){
+    const adapter = create_odata_adapter(srv)
+    const { before, after } = get_cds_middlewares()
+    return [before, adapter, after]
+}
+
 async function cds_init () {
     return load_cds_model().then( model => { // if we are in gen/srv it will pick up prebuilt csn.json
 
@@ -84,6 +90,7 @@ module.exports = {
     cds_init,
     load_cds_model,
     get_cds_middlewares,
+    get_cds_middlewares_for,
     get_tx_for,
     get_db_opts,
     create_odata_adapter,
