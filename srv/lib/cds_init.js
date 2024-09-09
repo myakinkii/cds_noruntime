@@ -9,6 +9,10 @@ async function load_cds_model () {
     return cds.model ? cds.model : cds.load('*').then( (csn) => cds.model = cds.compile.for.nodejs(csn) )
 }
 
+function get_cds_middlewares(){
+    return cds.middlewares
+}
+
 function create_odata_adapter (srv) {
     const [{ kind, path}] = srv.endpoints // assume just one
     const adapter = new ODataAdapter(srv)
@@ -72,5 +76,6 @@ async function cds_init () {
 module.exports = {
     cds_init,
     load_cds_model,
+    get_cds_middlewares,
     create_odata_adapter
 }

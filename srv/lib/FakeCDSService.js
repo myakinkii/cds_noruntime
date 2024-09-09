@@ -32,6 +32,8 @@ module.exports = class FakeCDSService  {
 
   async handle(req){
     console.log("HANDLE", req.event, JSON.stringify(req.query))
+    req.target = req.query.target // patch so that middleware etag shit works
+    return this.dbService.run(req.query, req.data) // call instance of our "db" service
   }
 
 }
