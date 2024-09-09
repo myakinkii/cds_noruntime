@@ -21,6 +21,8 @@ async function bootstrap({adapters, middlewares}) {
     app.use(adapter.path, before, adapter, after)
   })
 
+  app.useStaticAssets(__dirname+'/../app');
+
   await app.listen(port)
 
   console.log(`nest running at http://localhost:${port}`)
