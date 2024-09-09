@@ -25,3 +25,12 @@ Content-Type: application/json
     "genre_ID": 666,
     "stock":666
 }
+
+### delete Books (not so OData style)
+DELETE {{adminServiceURL}}/Books
+Authorization: {{authentication}}
+Content-Type: application/json
+
+{
+    "id"  : 666
+}

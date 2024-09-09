@@ -14,13 +14,10 @@ export class CatalogController {
     dbService: DBWithExternalTX
 
     @Get('*')
-    get(@Req() req: Request, @Res() res: Response) {
+    async getBooks(@Req() req: Request, @Res() res: Response) {
         req.query = SELECT.from`CatalogService.Books`
-        return (this.dbService as Service).run(req.query)
-    }
-    @Post('*')
-    create(@Req() req: Request, @Res() res: Response) {
-        res.status(HttpStatus.CREATED).send(req.body)
+        const result = await (this.dbService as Service).run(req.query)
+        res.status(HttpStatus.OK).json(result)
     }
 }
 

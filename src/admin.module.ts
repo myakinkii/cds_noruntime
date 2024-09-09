@@ -1,5 +1,5 @@
 import { Module, NestModule, RequestMethod, MiddlewareConsumer } from '@nestjs/common';
-import { Controller, Get, Post, Req, Res, HttpStatus } from '@nestjs/common';
+import { Controller, Get, Post, Delete, Req, Res, HttpStatus } from '@nestjs/common';
 import { Injectable, OnModuleInit, Inject} from '@nestjs/common';
 import { Request, Response, NextFunction } from 'express';
 import {ModuleRef} from '@nestjs/core'
@@ -14,13 +14,22 @@ export class AdminController {
     dbService: DBWithExternalTX
 
     @Get('*')
-    get(@Req() req: Request, @Res() res: Response) {
+    getBooks(@Req() req: Request, @Res() res: Response) {
         res.status(HttpStatus.OK).json([])
     }
+
     @Post('*')
-    create(@Req() req: Request, @Res() res: Response) {
+    async createBook(@Req() req: Request, @Res() res: Response) {
         req.query = INSERT.into`AdminService.Books`.entries(req.body)
-        return (this.dbService as Service).run(req.query)
+        const result = await (this.dbService as Service).run(req.query)
+        res.status(HttpStatus.CREATED).json(result)
+    }
+    
+    @Delete('*')
+    async deleteBook(@Req() req: Request, @Res() res: Response) {
+        req.query = DELETE.from`AdminService.Books`.where({ID: req.body.id})
+        const result = await (this.dbService as Service).run(req.query)
+        res.status(HttpStatus.NO_CONTENT).send()
     }
 }
 
