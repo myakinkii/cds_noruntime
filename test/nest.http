@@ -1,5 +1,6 @@
 @baseURL = http://localhost:3000
-@serviceURL = {{baseURL}}/rest/v1/srv
+@catServiceURL = {{baseURL}}/rest/v1/catalog
+@adminServiceURL = {{baseURL}}/rest/v1/admin
 @authentication = Basic alice:secret
 
 ### get root
@@ -8,12 +9,12 @@ Authorization: {{authentication}}
 
 
 ### get Books
-GET {{serviceURL}}/Books
+GET {{catServiceURL}}/Books
 Authorization: {{authentication}}
 
 
 ### post Books
-POST {{serviceURL}}/Books
+POST {{adminServiceURL}}/Books
 Authorization: {{authentication}}
 Content-Type: application/json
 

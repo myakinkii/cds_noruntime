@@ -23,4 +23,4 @@ async function bootstrap({adapters, middlewares}) {
     console.log(`cds running at http://localhost:${port}`)
   }
 
-  require('./srv/lib/cds_init')().then(bootstrap)
+  require('./srv/lib/cds_init').cds_init().then(bootstrap)

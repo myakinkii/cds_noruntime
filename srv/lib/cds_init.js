@@ -5,10 +5,19 @@ const MySQLiteService = require('./MySQLiteService')
 const FakeCDSService = require('./FakeCDSService')
 const ODataAdapter = require('./ODataAdapter')
 
-module.exports = function cds_init () {
-    return cds.load('*').then( async (csn) => { // if we are in gen/srv it will pick up prebuilt csn.json
+async function load_cds_model () {
+    return cds.model ? cds.model : cds.load('*').then( (csn) => cds.model = cds.compile.for.nodejs(csn) )
+}
 
-        const model = cds.model = cds.compile.for.nodejs(csn) // this guy needs to be global so far..
+function create_odata_adapter (srv) {
+    const [{ kind, path}] = srv.endpoints // assume just one
+    const adapter = new ODataAdapter(srv)
+    adapter.path = path
+    return adapter
+}
+
+async function cds_init () {
+    return load_cds_model().then( model => { // if we are in gen/srv it will pick up prebuilt csn.json
 
         class DBWithExternalTX extends MySQLiteService {
             tx(fn) {
@@ -47,19 +56,21 @@ module.exports = function cds_init () {
             }
         }
 
-        return Promise.all([AdminService, CatalogService].map( async (impl) => {
+        return [AdminService, CatalogService].map( impl => {
 
             //stolen from lib/srv/protocols/index.js
             const _slugified = name => /[^.]+$/.exec(name)[0].replace(/Service$/,'').replace(/_/g,'-').replace(/([a-z0-9])([A-Z])/g, (_,c,C) => c+'-'+C).toLowerCase()
 
             const srv = new impl(impl.name, model, { to:"odata-v4", at: "/odata/v4/"+_slugified(impl.name) })
-            // await srv._init()
 
-            const [{ kind, path}] = srv.endpoints // assume just one
-            const adapter = new ODataAdapter(srv)
-            adapter.path = path
-            return adapter
-        }))
+            return create_odata_adapter(srv)
+        })
         
     }).then( adapters => ({ adapters, middlewares: cds.middlewares }))
+}
+
+module.exports = {
+    cds_init,
+    load_cds_model,
+    create_odata_adapter
 }
