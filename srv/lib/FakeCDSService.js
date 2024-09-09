@@ -31,10 +31,16 @@ module.exports = class FakeCDSService  {
   }
 
   async handle(req){
-    console.log("HANDLE", req.event, JSON.stringify(req.query))
+    throw new Error('I dont know how to do it!')
+    // but my subclassess would do something like this
     req.target = req.query.target // patch so that middleware etag shit works
-    return this.dbService.run(req.query, req.data) // call instance of our "db" service
+    return this.dbService.run(req.query, req.data) // call instance of cds db service
   }
+  
+  tx(fn) {
+    throw new Error('I dont know how to do it!')
+    // but my subclassess will somehow obtain tx from cds srv_tx
+}
 
 }
 

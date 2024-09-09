@@ -1,23 +1,28 @@
 import { Service } from '@sap/cds'
 export { Service } from '@sap/cds'
-import { load_cds_model, create_odata_adapter } from '../srv/lib/cds_init'
 
-const cds = require('@sap/cds')
-const srv_tx = require('@sap/cds/lib/srv/srv-tx') // tx magic
-const MySQLiteService = require('../srv/lib/MySQLiteService')
-const FakeCDSService = require('../srv/lib/FakeCDSService')
+import { load_cds_model, get_tx_for, get_db_opts, FakeCDSService, MySQLiteService } from '../srv/lib/cds_init'
 
 export class CDSWithExternalTX extends FakeCDSService {
+
+    dbService: any // injected later via onModuleInit
+
     tx(fn) {
-        const expectedRootTransaction = srv_tx.call(this, fn)
-        return expectedRootTransaction
+        return get_tx_for(this, fn)
+    }
+
+    async handle(req){
+        console.log("HANDLE", req.event, JSON.stringify(req.query))
+        req.target = req.query.target // patch so that middleware etag shit works
+
+         // call instance of our "db" service that we got from controller 
+        return this.dbService.run(req.query, req.data)
     }
 }
 
 export class DBWithExternalTX extends MySQLiteService {
     tx(fn) {
-        const expectedRootTransaction = srv_tx.call(this, fn)
-        return expectedRootTransaction
+        return get_tx_for(this, fn)
     }
 }
 
@@ -31,7 +36,7 @@ const cdsModelProvider = {
 const dbProvider = {
     provide: 'db',
     useFactory: async (cdsmodel:any) => {
-        return new (DBWithExternalTX as Service)('db', cdsmodel, cds.requires.db) // hardcoded options for now
+        return new (DBWithExternalTX as Service)('db', cdsmodel, get_db_opts()) // hardcoded options for now
     },
     inject:['model']
 }

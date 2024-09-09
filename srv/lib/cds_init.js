@@ -20,13 +20,21 @@ function create_odata_adapter (srv) {
     return adapter
 }
 
+function get_tx_for(srv,fn){
+    return srv_tx.call(srv, fn)
+}
+
+function get_db_opts(){
+    return cds.requires.db
+}
+
 async function cds_init () {
     return load_cds_model().then( model => { // if we are in gen/srv it will pick up prebuilt csn.json
 
         class DBWithExternalTX extends MySQLiteService {
+
             tx(fn) {
-                const expectedRootTransaction = srv_tx.call(this, fn)
-                return expectedRootTransaction
+                return get_tx_for(this, fn)
             }
         }
 
@@ -35,28 +43,26 @@ async function cds_init () {
         class AdminService extends FakeCDSService {
 
             tx(fn) {
-                const expectedRootTransaction = srv_tx.call(this, fn)
-                return expectedRootTransaction
+                return get_tx_for(this, fn)
             }
 
             async handle(req){
                 console.log("HANDLE", req.event, JSON.stringify(req.query))
                 req.target = req.query.target // patch so that middleware etag shit works
-                return dbService.run(req.query, req.data) // call instance of our "db" service
+                return this.dbService.run(req.query, req.data) // call instance of our "db" service
             }
         }
 
         class CatalogService extends FakeCDSService {
 
             tx(fn) {
-                const expectedRootTransaction = srv_tx.call(this, fn)
-                return expectedRootTransaction
+                return get_tx_for(this, fn)
             }
 
             async handle(req){
                 console.log("HANDLE", req.event, JSON.stringify(req.query))
                 req.target = req.query.target // patch so that middleware etag shit works
-                return dbService.run(req.query, req.data) // call instance of our "db" service
+                return this.dbService.run(req.query, req.data) // call instance of our "db" service
             }
         }
 
@@ -66,6 +72,7 @@ async function cds_init () {
             const _slugified = name => /[^.]+$/.exec(name)[0].replace(/Service$/,'').replace(/_/g,'-').replace(/([a-z0-9])([A-Z])/g, (_,c,C) => c+'-'+C).toLowerCase()
 
             const srv = new impl(impl.name, model, { to:"odata-v4", at: "/odata/v4/"+_slugified(impl.name) })
+            srv.dbService = dbService // inject cds db service
 
             return create_odata_adapter(srv)
         })
@@ -77,5 +84,9 @@ module.exports = {
     cds_init,
     load_cds_model,
     get_cds_middlewares,
-    create_odata_adapter
+    get_tx_for,
+    get_db_opts,
+    create_odata_adapter,
+    MySQLiteService,
+    FakeCDSService
 }
