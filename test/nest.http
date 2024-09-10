@@ -13,6 +13,11 @@ GET {{catServiceURL}}/Books
 Authorization: {{authentication}}
 
 
+### get Book 666
+GET {{adminServiceURL}}/Book/666
+Authorization: {{authentication}}
+
+
 ### post Books
 POST {{adminServiceURL}}/Books
 Authorization: {{authentication}}

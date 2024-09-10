@@ -1,5 +1,5 @@
 import { Module, NestModule, RequestMethod, MiddlewareConsumer } from '@nestjs/common';
-import { Controller, Get, Post, Delete, Req, Res, HttpStatus } from '@nestjs/common';
+import { Controller, Get, Post, Delete, Req, Res, Param, HttpStatus } from '@nestjs/common';
 import { Injectable, OnModuleInit, Inject} from '@nestjs/common';
 import { Request, Response, NextFunction } from 'express';
 import {ModuleRef} from '@nestjs/core'
@@ -13,9 +13,13 @@ export class AdminController {
     @Inject('db')
     dbService: DBWithExternalTX
 
-    @Get('*')
-    getBooks(@Req() req: Request, @Res() res: Response) {
-        res.status(HttpStatus.OK).json([])
+    @Get('*/:id')
+    async getBook(@Param() params: any, @Req() req: Request, @Res({ passthrough: true }) res: Response) {
+        req.query = SELECT.one.from`CatalogService.Books`.where`ID = ${params.id}`
+        const result = await (this.dbService as Service).run(req.query)
+        res.status(HttpStatus.OK)
+        res.set('X-Custom', 'served with nest')
+        return result
     }
 
     @Post('*')
@@ -29,6 +33,7 @@ export class AdminController {
     async deleteBook(@Req() req: Request, @Res() res: Response) {
         req.query = DELETE.from`AdminService.Books`.where({ID: req.body.id})
         const result = await (this.dbService as Service).run(req.query)
+        throw new Error('what about a rollback tho?')
         res.status(HttpStatus.NO_CONTENT).send()
     }
 }
