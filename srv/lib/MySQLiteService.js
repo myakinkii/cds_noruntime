@@ -50,4 +50,9 @@ module.exports = class MySQLiteService extends SQLiteService {
         }
         return results
     }
+
+    tx(fn) {
+        throw new Error('I dont know how to do it!')
+        // but my subclassess will somehow obtain tx from cds srv_tx
+    }
 }
