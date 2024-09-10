@@ -11,8 +11,18 @@ async function load_cds_model () {
     return cds.model ? cds.model : cds.load('*').then( (csn) => cds.model = cds.compile.for.nodejs(csn) )
 }
 
+function get_db_opts(){
+    return cds.requires.db
+}
+
 function get_cds_middlewares(){
     return cds.middlewares
+}
+
+function get_cds_middlewares_for(srv){
+    const adapter = create_odata_adapter(srv)
+    const { before, after } = get_cds_middlewares()
+    return [before, adapter, after]
 }
 
 function create_odata_adapter (srv) {
@@ -26,16 +36,6 @@ function get_tx_for(srv,fn){
     return srv_tx.call(srv, fn)
 }
 
-function get_db_opts(){
-    return cds.requires.db
-}
-
-function get_cds_middlewares_for(srv){
-    const adapter = create_odata_adapter(srv)
-    const { before, after } = get_cds_middlewares()
-    return [before, adapter, after]
-}
-
 async function cds_init () {
     return load_cds_model().then( model => { // if we are in gen/srv it will pick up prebuilt csn.json
 
@@ -46,7 +46,7 @@ async function cds_init () {
             }
         }
 
-        const dbService = new DBWithExternalTX ("db", model, cds.requires.db); 
+        const dbService = new DBWithExternalTX ("db", model, get_db_opts()); 
 
         class AdminService extends FakeCDSService {
 
@@ -85,7 +85,7 @@ async function cds_init () {
             return create_odata_adapter(srv)
         })
         
-    }).then( adapters => ({ adapters, middlewares: cds.middlewares }))
+    }).then( adapters => ({ adapters, middlewares: get_cds_middlewares() }))
 }
 
 module.exports = {
