@@ -13,6 +13,11 @@ GET {{catServiceURL}}/Books
 Authorization: {{authentication}}
 
 
+### get Books in some more interesting ways
+GET {{catServiceURL}}/Books?$select=title&$filter=ID ne 666&$expand=genre
+Authorization: {{authentication}}
+
+
 ### get Book 666
 GET {{adminServiceURL}}/Book/666
 Authorization: {{authentication}}

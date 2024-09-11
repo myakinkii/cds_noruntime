@@ -5,7 +5,7 @@ const { SELECT, INSERT, UPDATE, DELETE } = cds.ql
 
 const MySQLiteService = require('./MySQLiteService')
 const FakeCDSService = require('./FakeCDSService')
-const ODataAdapter = require('./ODataAdapter')
+const { ODataAdapter, ODataAdapterMiddleware } = require('./ODataAdapter')
 
 async function load_cds_model () {
     return cds.model ? cds.model : cds.load('*').then( (csn) => cds.model = cds.compile.for.nodejs(csn) )
@@ -17,6 +17,18 @@ function get_db_opts(){
 
 function get_cds_middlewares(){
     return cds.middlewares
+}
+
+function get_odata_middlewares_for(service){
+    const { before, after } = get_cds_middlewares()
+    return [
+        ...before,
+        // we need cds.context as getKeysAndParamsFromPath crashes at const model = cds.context.model ?? srv.model
+        ODataAdapterMiddleware._baseUrl({service}),
+        ODataAdapterMiddleware._parse({service}),
+        ODataAdapterMiddleware._read({service}),
+        ODataAdapterMiddleware._create({service}),
+    ]
 }
 
 function get_cds_middlewares_for(srv){
@@ -93,6 +105,7 @@ module.exports = {
     load_cds_model,
     get_cds_middlewares,
     get_cds_middlewares_for,
+    get_odata_middlewares_for,
     get_tx_for,
     get_db_opts,
     create_odata_adapter,

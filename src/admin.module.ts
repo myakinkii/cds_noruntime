@@ -14,12 +14,10 @@ export class AdminController {
     dbService: DBWithExternalTX
 
     @Get('*/:id')
-    async getBook(@Param() params: any, @Req() req: Request, @Res({ passthrough: true }) res: Response) {
+    async getBook(@Param() params: any, @Req() req: Request, @Res() res: Response) {
         req.query = SELECT.one.from`CatalogService.Books`.where`ID = ${params.id}`
         const result = await (this.dbService as Service).run(req.query)
-        res.status(HttpStatus.OK)
-        res.set('X-Custom', 'served with nest')
-        return result
+        res.status(HttpStatus.OK).json(result)
     }
 
     @Post('*')

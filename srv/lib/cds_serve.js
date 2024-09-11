@@ -1,7 +1,7 @@
 const cds = require('@sap/cds')
 const { before, after } = cds.middlewares
 
-const ODataAdapter = require('./ODataAdapter')
+const { ODataAdapter } = require('./ODataAdapter')
 
 module.exports = function cds_serve(som, _options) {
 

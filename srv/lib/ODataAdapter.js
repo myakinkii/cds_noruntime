@@ -10,12 +10,16 @@ const ODataAdapterMiddleware = {
         res.set('OData-Version', '4.0')
         next()
     },
-    sericeDocument: require('@sap/cds/libx/odata/middleware/service-document'),
+    serviceDocument: require('@sap/cds/libx/odata/middleware/service-document'),
     metadata: require('@sap/cds/libx/odata/middleware/metadata'),
+    _baseUrl: require('./middleware/baseUrl'),
+    _parse: require('./middleware/parse'),
     parse: require('@sap/cds/libx/odata/middleware/parse'), // cds.odata.parse added globally in cds.lib
     batch: require('@sap/cds/libx/odata/middleware/batch'),
     operation: require('@sap/cds/libx/odata/middleware/operation'), // functions + actions
+    _create: require('./middleware/create'),
     create: require('@sap/cds/libx/odata/middleware/create'),
+    _read: require('./middleware/read'),
     read: require('@sap/cds/libx/odata/middleware/read'),
     update: require('@sap/cds/libx/odata/middleware/update'), // put + patch
     delete: require('@sap/cds/libx/odata/middleware/delete'),
@@ -48,19 +52,19 @@ const ODataAdapterMiddleware = {
     }
 }
 
-module.exports = class ODataAdapter extends HttpAdapter {
+class ODataAdapter extends HttpAdapter {
     log(req) {
         // simplest ever
-        console.log(req.method, req.baseUrl, req.url)
+        console.log('ODATA', req.method, req.baseUrl, req.url)
     }
 
     request4(args) {
-        return new NoaRequest(args)
+        return new cds.Request(args)
     }
 
     get router() {
         return super.router.use(ODataAdapterMiddleware.odata_version)
-            .use(/^\/$/, ODataAdapterMiddleware.sericeDocument(this))
+            .use(/^\/$/, ODataAdapterMiddleware.serviceDocument(this))
             .use('/\\$metadata', ODataAdapterMiddleware.metadata(this))
             .use(ODataAdapterMiddleware.parse(this))
             .use(ODataAdapterMiddleware.odata_streams)
@@ -80,15 +84,8 @@ module.exports = class ODataAdapter extends HttpAdapter {
     }
 }
 
-// REVISIT: ugly hack -> eliminate
-class NoaRequest extends cds.Request {
-    // REVISIT: all usages of .protocol are very bad style, violating modularization
-    get protocol() {
-        return 'odata'
-    }
-    // AFC uses unofficial req._queryOptions -> which is bad! -> should eliminate
-    get _queryOptions() {
-        cds.utils.deprecated({ kind: '', old: 'req._queryOptions', new: 'req._.req.query' })
-        return this.req?.query
-    }
+
+module.exports = {
+    ODataAdapterMiddleware,
+    ODataAdapter
 }

@@ -4,46 +4,43 @@ import { Injectable, OnModuleInit, Inject} from '@nestjs/common';
 import { Request, Response, NextFunction } from 'express';
 import {ModuleRef} from '@nestjs/core'
 
-import { CDSModule, CDSWithExternalTX, DBWithExternalTX, Service, get_cds_middlewares_for } from './cds.provider'
+import { CDSModule, EmptyCDSService, DBWithExternalTX, Service, get_odata_middlewares_for } from './cds.provider'
 import { SELECT, INSERT, UPDATE, DELETE } from './cds.provider'
 
-@Controller('rest/v1/catalog')
-export class CatalogController {
+const svcPath = '/rest/v1/catalog'
+
+@Controller(svcPath)
+export class CatalogService {
 
     @Inject('db')
     dbService: DBWithExternalTX
 
     @Get('*')
-    async getBooks(@Req() req: Request, @Res() res: Response) {
-        req.query = SELECT.from`CatalogService.Books`
-        const result = await (this.dbService as Service).run(req.query)
-        res.status(HttpStatus.OK).json(result)
+    async getBooks(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
+        res.status(HttpStatus.OK)
+        res.set('X-Custom', 'served with nest-ed cds odata')
+        return (this.dbService as Service).run(req.query)
+    }
+
+    @Post('*')
+    async createBook(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
+        res.status(HttpStatus.CREATED)
+        return (this.dbService as Service).run(req.query)
     }
 }
 
 @Module({
-    controllers: [CatalogController],
+    controllers: [CatalogService],
     imports: [CDSModule]
 })
-export class CatalogModule implements NestModule, OnModuleInit {
+export class CatalogModule implements NestModule {
 
     @Inject('model')
     cdsmodel: any
 
-    svcName = 'CatalogService'
-    svcPath = '/odata/v4/catalog'
-
-    private odataService: CDSWithExternalTX
-
-    constructor(private moduleRef: ModuleRef) {}
-
-    onModuleInit() {
-        this.odataService.dbService = this.moduleRef.get(CatalogController).dbService
-    }
-    
     configure(consumer: MiddlewareConsumer) {
-        const srv = this.odataService = new (CDSWithExternalTX as Service)(this.svcName, this.cdsmodel, { at: this.svcPath })
-        console.log(`mount odata adapter for ${this.svcPath}`)
-        consumer.apply(...get_cds_middlewares_for(srv)).forRoutes(this.svcPath)
+        const srv = new EmptyCDSService(CatalogService.name, this.cdsmodel, { at: svcPath })
+        console.log(`mount odata adapter for ${svcPath}`)
+        consumer.apply(...get_odata_middlewares_for(srv)).forRoutes(CatalogService)
     }
 }
