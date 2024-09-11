@@ -4,7 +4,7 @@ import { Request, Response, NextFunction } from 'express';
 import { AppModule } from './app.module';
 
 function logger(req: Request, res: Response, next: NextFunction) {
-    console.log(`req ${req.url}`);
+    console.log(`${req.method} ${req.url}`);
     next();
 };
 
