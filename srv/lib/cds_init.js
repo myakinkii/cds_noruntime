@@ -24,11 +24,18 @@ function get_odata_middlewares_for(service){
     return [
         ...before,
         // we need cds.context as getKeysAndParamsFromPath crashes at const model = cds.context.model ?? srv.model
+        ODataAdapterMiddleware.odata_version,
         ODataAdapterMiddleware._baseUrl({service}),
-        ODataAdapterMiddleware._parse({service}),
-        ODataAdapterMiddleware._read({service}),
-        ODataAdapterMiddleware._create({service}),
+        ODataAdapterMiddleware._service_document({service}),
+        ODataAdapterMiddleware._metadata({service}),
+        ODataAdapterMiddleware._baseUrl({service}),
+        ODataAdapterMiddleware._batch_in({service}),
+        ODataAdapterMiddleware._parse({service})
     ]
+}
+
+function write_batch_multipart(req, res){
+    return ODataAdapterMiddleware._batch_out(req.batch, res)
 }
 
 function get_cds_middlewares_for(srv){
@@ -109,6 +116,7 @@ module.exports = {
     get_tx_for,
     get_db_opts,
     create_odata_adapter,
+    write_batch_multipart,
     MySQLiteService,
     FakeCDSService,
     SELECT, INSERT, UPDATE, DELETE

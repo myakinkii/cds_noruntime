@@ -10,16 +10,18 @@ const ODataAdapterMiddleware = {
         res.set('OData-Version', '4.0')
         next()
     },
-    serviceDocument: require('@sap/cds/libx/odata/middleware/service-document'),
+    _service_document: require('./middleware/service_document'),
+    service_document: require('@sap/cds/libx/odata/middleware/service-document'),
+    _metadata: require('./middleware/metadata'),
     metadata: require('@sap/cds/libx/odata/middleware/metadata'),
     _baseUrl: require('./middleware/baseUrl'),
     _parse: require('./middleware/parse'),
     parse: require('@sap/cds/libx/odata/middleware/parse'), // cds.odata.parse added globally in cds.lib
+    _batch_in: require('./middleware/batch_in'),
+    _batch_out: require('./middleware/batch_out'),
     batch: require('@sap/cds/libx/odata/middleware/batch'),
     operation: require('@sap/cds/libx/odata/middleware/operation'), // functions + actions
-    _create: require('./middleware/create'),
     create: require('@sap/cds/libx/odata/middleware/create'),
-    _read: require('./middleware/read'),
     read: require('@sap/cds/libx/odata/middleware/read'),
     update: require('@sap/cds/libx/odata/middleware/update'), // put + patch
     delete: require('@sap/cds/libx/odata/middleware/delete'),
@@ -64,7 +66,7 @@ class ODataAdapter extends HttpAdapter {
 
     get router() {
         return super.router.use(ODataAdapterMiddleware.odata_version)
-            .use(/^\/$/, ODataAdapterMiddleware.serviceDocument(this))
+            .use(/^\/$/, ODataAdapterMiddleware.service_document(this))
             .use('/\\$metadata', ODataAdapterMiddleware.metadata(this))
             .use(ODataAdapterMiddleware.parse(this))
             .use(ODataAdapterMiddleware.odata_streams)

@@ -4,7 +4,12 @@
 @authentication = Basic alice:secret
 
 ### get root
-GET {{baseURL}}/
+GET {{catServiceURL}}/
+Authorization: {{authentication}}
+
+
+### get metadata
+GET {{catServiceURL}}/$metadata
 Authorization: {{authentication}}
 
 
@@ -16,6 +21,15 @@ Authorization: {{authentication}}
 ### get Books in some more interesting ways
 GET {{catServiceURL}}/Books?$select=title&$filter=ID ne 666&$expand=genre
 Authorization: {{authentication}}
+
+
+### post $batch
+@body = --batch_id_123\r\nContent-Type:application/http\r\nContent-Transfer-Encoding:binary\r\n\r\nPATCH Books(ID=666) HTTP/1.1\r\nAccept:application/json\r\nAccept-Language:en\r\nContent-Type:application/json\r\n\r\n{"title":"Holy Bible"}\r\n--batch_id_123\r\nContent-Type:application/http\r\nContent-Transfer-Encoding:binary\r\n\r\nGET Books(666) HTTP/1.1\r\nAccept:application/json\r\nAccept-Language:en\r\nContent-Type:application/json\r\n\r\n\r\n--batch_id_123--
+POST {{catServiceURL}}/$batch
+Authorization: {{authentication}}
+Content-Type: multipart/mixed; boundary=batch_id_123
+
+{{body}}
 
 
 ### get Book 666
