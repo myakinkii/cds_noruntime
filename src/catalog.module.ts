@@ -53,7 +53,6 @@ export class CatalogService {
             await tx.rollback()
         }
         res.send()
-        // return Promise.all(req.batch.requests.map( r => (this.dbService as Service).run(r.query, r.data)))
     }
 
     @Post('*')
@@ -74,7 +73,7 @@ export class CatalogModule implements NestModule {
 
     configure(consumer: MiddlewareConsumer) {
         const srv = new EmptyCDSService(CatalogService.name, this.cdsmodel, { at: svcPath })
-        console.log(`mount odata adapter for ${svcPath}`)
+        console.log(`apply odata middlewares for ${svcPath}`)
         consumer.apply(...get_odata_middlewares_for(srv)).forRoutes(CatalogService)
     }
 }
