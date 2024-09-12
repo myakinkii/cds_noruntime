@@ -6,10 +6,6 @@ module.exports = class MySQLiteService extends SQLiteService {
 
     send(method, path, data, headers) {// stolen from srv-api, but we only receive BEGIN COMMIT ROLBACK here
         console.log("DB.SEND", method)
-        const is_object = (x) => typeof x === 'object'
-        if (method instanceof Request) return this.dispatch(method)
-        if (is_object(method)) return this.dispatch(new Request(method))
-        if (is_object(path)) return this.dispatch(new Request({ method, data: path, headers: data }))
         return this.dispatch(new Request({ method, path, data, headers }))
     }
 
@@ -17,16 +13,14 @@ module.exports = class MySQLiteService extends SQLiteService {
         console.log("DB.RUN", typeof query)
         const already_txed = !!this.ready // not sure but looks like this is what srv_tx deals with
         if (typeof query === 'function') {
-            const fn = query;
-            return this.tx(fn) // here we get us root transaction
+            const fn = query // for clarity
+            return this.tx(fn) // here we get us tx-ed with RootTransaction
         } else if (already_txed){ // we want this for manual tx mode
-            const req = new Request({ query })
-            return this.dispatch(req)
+            return this.dispatch(new Request({ query })) // so this guy just dispatches while handler has to call begin + commit/rollback
         } else {
             // this is some magic to acquire tx
             // resembles to what happens in odata middleware: run + dispatch
-            const req = new Request({ query })
-            return this.run(tx => tx.dispatch(req))
+            return this.run(tx => tx.dispatch(new Request({ query }))) // probably just to make us "tx ourself" + call srv.dispatch
         }
     }
 
@@ -57,6 +51,6 @@ module.exports = class MySQLiteService extends SQLiteService {
     }
 
     tx(fn) {
-        return srv_tx.call(this, fn)
+        return srv_tx.call(this, fn) // we assume that we actually just "tx" ourself
     }
 }
