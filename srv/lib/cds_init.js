@@ -119,5 +119,6 @@ module.exports = {
     write_batch_multipart,
     MySQLiteService,
     FakeCDSService,
+    Request: cds.Request,
     SELECT, INSERT, UPDATE, DELETE
 }

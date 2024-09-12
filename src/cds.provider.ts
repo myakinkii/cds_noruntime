@@ -1,7 +1,7 @@
 import { Service } from '@sap/cds'
 export { Service } from '@sap/cds'
 
-import { load_cds_model, get_tx_for, get_db_opts, FakeCDSService, MySQLiteService } from '../srv/lib/cds_init'
+import { load_cds_model, get_tx_for, get_db_opts, FakeCDSService, MySQLiteService, Request as CDSRequest } from '../srv/lib/cds_init'
 export { SELECT, INSERT, UPDATE, DELETE } from '../srv/lib/cds_init'
 export { get_cds_middlewares_for, get_odata_middlewares_for, write_batch_multipart } from '../srv/lib/cds_init'
 
@@ -48,6 +48,18 @@ export class DBWithExternalTX extends MySQLiteService {
     }
 }
 
+export class DBWWithManualTX extends MySQLiteService {
+    tx(fn?) {
+        return get_tx_for(this, fn)
+    }
+
+    async run(query) {
+        console.log("DB.RUN", typeof query)
+        const req = new CDSRequest({ query })
+        return (this as Service).dispatch(req)
+    }
+}
+
 import { Module, Injectable } from '@nestjs/common';
 
 const cdsModelProvider = {
@@ -58,7 +70,7 @@ const cdsModelProvider = {
 const dbProvider = {
     provide: 'db',
     useFactory: async (cdsmodel:any) => {
-        return new (DBWithExternalTX as Service)('db', cdsmodel, get_db_opts()) // hardcoded options for now
+        return new (DBWWithManualTX as Service)('db', cdsmodel, get_db_opts()) // hardcoded options for now
     },
     inject:['model']
 }
