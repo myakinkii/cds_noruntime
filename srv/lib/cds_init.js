@@ -27,7 +27,6 @@ function get_odata_middlewares_for(service){
         ODataAdapterMiddleware._baseUrl({service}),
         ODataAdapterMiddleware._service_document({service}),
         ODataAdapterMiddleware._metadata({service}),
-        ODataAdapterMiddleware._baseUrl({service}),
         ODataAdapterMiddleware._batch_in({service}),
         ODataAdapterMiddleware._parse({service})
     ]
