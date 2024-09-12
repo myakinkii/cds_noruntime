@@ -45,6 +45,13 @@ export class CatalogService {
         res.send()
     }
 
+    @Post('submitOrder')
+    async submitOrder(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
+        res.status(HttpStatus.CREATED)
+        // return (this.dbService as Service).run(req.query)
+        return (req as any).data
+    }
+
     @Post('*')
     async createBook(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
         res.status(HttpStatus.CREATED)

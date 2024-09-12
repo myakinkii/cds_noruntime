@@ -22,6 +22,14 @@ export class AdminService {
         res.status(HttpStatus.OK).json(result)
     }
 
+    @Post('*addRating')
+    async addRating(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
+        res.status(HttpStatus.CREATED)
+        const [entity] = await (this.dbService as Service).run(req.query)
+        entity.rating = (req as any).data.stars
+        return entity
+    }
+
     @Post('*')
     async createBook(@Req() req: Request, @Res() res: Response) {
         req.query = INSERT.into`AdminService.Books`.entries(req.body)

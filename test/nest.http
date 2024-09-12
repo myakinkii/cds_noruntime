@@ -32,6 +32,27 @@ Content-Type: multipart/mixed; boundary=batch_id_123
 {{body}}
 
 
+### call ubound submitOrder action
+POST {{catServiceURL}}/submitOrder
+Authorization: {{authentication}}
+Content-Type: application/json
+
+{
+    "book": 666, 
+    "quantity": 666
+}
+
+
+### call bound draftEdit action
+POST {{adminServiceURL}}/Books(ID=666)/AdminService.addRating
+Authorization: {{authentication}}
+Content-Type: application/json
+        
+{
+    "stars": 666
+}
+
+
 ### get Book 666
 GET {{adminServiceURL}}/Books/666
 Authorization: {{authentication}}
