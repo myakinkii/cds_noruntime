@@ -33,7 +33,7 @@ Content-Type: multipart/mixed; boundary=batch_id_123
 
 
 ### get Book 666
-GET {{adminServiceURL}}/Book/666
+GET {{adminServiceURL}}/Books/666
 Authorization: {{authentication}}
 
 

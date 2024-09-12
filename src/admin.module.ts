@@ -17,7 +17,7 @@ export class AdminService {
 
     @Get('*/:id')
     async getBook(@Param() params: any, @Req() req: Request, @Res() res: Response) {
-        req.query = SELECT.one.from`CatalogService.Books`.where`ID = ${params.id}`
+        // req.query = SELECT.one.from`CatalogService.Books`.where`ID = ${params.id}` // now its same as from middleware
         const result = await (this.dbService as Service).run(req.query)
         res.status(HttpStatus.OK).json(result)
     }
