@@ -15,9 +15,13 @@ module.exports = class MySQLiteService extends SQLiteService {
 
     async run(query, data) { // this signature is probably obsolete and comes from old times.. 
         console.log("DB.RUN", typeof query)
+        const already_txed = !!this.ready // not sure but looks like this is what srv_tx deals with
         if (typeof query === 'function') {
             const fn = query;
             return this.tx(fn) // here we get us root transaction
+        } else if (already_txed){ // we want this for manual tx mode
+            const req = new Request({ query })
+            return this.dispatch(req)
         } else {
             // this is some magic to acquire tx
             // resembles to what happens in odata middleware: run + dispatch

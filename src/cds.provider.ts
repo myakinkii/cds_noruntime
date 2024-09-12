@@ -33,15 +33,6 @@ export class CDSServiceWithTX extends FakeCDSService {
 
 export class DBWithAutoTX extends MySQLiteService {}
 
-export class DBWWithManualTX extends MySQLiteService {
-
-    async run(query) {
-        console.log("DB.RUN", typeof query)
-        const req = new CDSRequest({ query })
-        return (this as Service).dispatch(req)
-    }
-}
-
 import { Module, Injectable } from '@nestjs/common';
 
 const cdsModelProvider = {
@@ -52,7 +43,7 @@ const cdsModelProvider = {
 const dbProvider = {
     provide: 'db',
     useFactory: async (cdsmodel:any) => {
-        return new (DBWWithManualTX as Service)('db', cdsmodel, get_db_opts()) // hardcoded options for now
+        return new (DBWithAutoTX as Service)('db', cdsmodel, get_db_opts()) // hardcoded options for now
     },
     inject:['model']
 }

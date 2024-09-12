@@ -3,6 +3,6 @@ import { CatalogModule } from './catalog.module';
 import { AdminModule } from './admin.module';
 
 @Module({
-  imports: [CatalogModule]
+  imports: [CatalogModule, AdminModule]
 })
 export class AppModule {}
