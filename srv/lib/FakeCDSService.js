@@ -1,4 +1,3 @@
-const srv_tx = require('@sap/cds/lib/srv/srv-tx') // tx magic
 module.exports = class FakeCDSService {
 
   constructor(name, model, o) {
@@ -38,7 +37,9 @@ module.exports = class FakeCDSService {
   }
 
   tx(fn) { // its ONLY here to fix $batch handler in ODataAdapter
-    return srv_tx.call(this, fn)
+    return Promise.resolve(fn({})) // have no idea what that is, but it kinda does something
+    // looks like the purpose of that stuf is to properly wait until all transactions are done..
+    // in our case we have new RootTransaction for each query so we dont care
   }
 
 }
