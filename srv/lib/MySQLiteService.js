@@ -12,7 +12,7 @@ module.exports = class MySQLiteService extends SQLiteService {
         return this.dispatch(new Request({ method, path, data, headers }))
     }
 
-    async run(query, data) {
+    async run(query, data) { // this signature is probably obsolete and comes from old times.. 
         console.log("DB.RUN", typeof query)
         if (typeof query === 'function') {
             const fn = query;
@@ -20,23 +20,23 @@ module.exports = class MySQLiteService extends SQLiteService {
         } else {
             // this is some magic to acquire tx
             // resembles to what happens in odata middleware: run + dispatch
-            const req = new Request({ query, data })
+            const req = new Request({ query })
             return this.run(tx => tx.dispatch(req))
         }
     }
 
-    async dispatch(req) {
+    async dispatch(req) { // ok it actually has to be cds.Request which replaces actual req object
         console.log("DB.DISPATCH", req.event, req.query?.target?.name)
         return this.handle(req)
     }
 
-    async handle(req) {
+    async handle(req) { // so we basically just need req.query and req.event here
         console.log("DB.HANDLE", req.event, JSON.stringify(req.query))
 
         if (req.event in { 'BEGIN': 1, 'COMMIT': 1, 'ROLLBACK': 1 }) return this.exec(req.event)
 
-        const { query, data } = req
-        const { sql, values, entries, cqn } = this.cqn2sql(query, data) // lots of magic here
+        const { query, data } = req // but looks like even without data it generaters proper sql based on query
+        const { sql, values, entries, cqn } = this.cqn2sql(query) // lots of magic here
         // also renders and console logs sql at this moment
 
         const ps = await this.prepare(sql)
