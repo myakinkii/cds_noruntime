@@ -22,7 +22,7 @@ export class CatalogService {
         if (!req.query.SELECT) return // HEAD service request gets here..
 
         let result
-        const tx = this.dbService.tx() // believe it or not, its our db service, but "tx-ed" now...
+        const tx = (this.dbService as Service).tx() // believe it or not, its our db service, but "tx-ed" now...
         try {
             await tx.begin()
             result = await tx.run(req.query)
@@ -38,7 +38,7 @@ export class CatalogService {
         res.set('X-Custom', 'something really nasty happens here')
         res.set('X-Batch', `requests=${req.batch.requests.length};boundary=${req.batch.boundary}`)
         res.status(HttpStatus.OK)
-        const tx = this.dbService.tx() // believe it or not, its our db service, but "tx-ed" now...
+        const tx = (this.dbService as Service).tx() // believe it or not, its our db service, but "tx-ed" now...
         try {
             await tx.begin()
             for (const r of req.batch.requests ){

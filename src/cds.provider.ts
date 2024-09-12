@@ -1,7 +1,7 @@
 import { Service } from '@sap/cds'
 export { Service } from '@sap/cds'
 
-import { load_cds_model, get_tx_for, get_db_opts, FakeCDSService, MySQLiteService, Request as CDSRequest } from '../srv/lib/cds_init'
+import { load_cds_model, get_db_opts, FakeCDSService, MySQLiteService, Request as CDSRequest } from '../srv/lib/cds_init'
 export { SELECT, INSERT, UPDATE, DELETE } from '../srv/lib/cds_init'
 export { get_cds_middlewares_for, get_odata_middlewares_for, write_batch_multipart } from '../srv/lib/cds_init'
 
@@ -25,33 +25,15 @@ export class EmptyCDSService {
     }
 }
 
-export class CDSWithExternalTX extends FakeCDSService {
+export class CDSServiceWithTX extends FakeCDSService {
 
-    dbService: DBWithExternalTX // injected later via onModuleInit
+    dbService: DBWithAutoTX // injected later via onModuleInit
 
-    tx(fn) {
-        return get_tx_for(this, fn)
-    }
-
-    async handle(req){
-        console.log("HANDLE", req.event, JSON.stringify(req.query))
-        req.target = req.query.target // patch so that middleware etag shit works
-
-         // call instance of our "db" service that we got from controller 
-        return (this.dbService as Service).run(req.query, req.data)
-    }
 }
 
-export class DBWithExternalTX extends MySQLiteService {
-    tx(fn) {
-        return get_tx_for(this, fn)
-    }
-}
+export class DBWithAutoTX extends MySQLiteService {}
 
 export class DBWWithManualTX extends MySQLiteService {
-    tx(fn?) {
-        return get_tx_for(this, fn)
-    }
 
     async run(query) {
         console.log("DB.RUN", typeof query)

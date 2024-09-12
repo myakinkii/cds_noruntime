@@ -1,5 +1,6 @@
 const { Request } = require('@sap/cds')
 const SQLiteService = require('@cap-js/sqlite')
+const srv_tx = require('@sap/cds/lib/srv/srv-tx') // tx magic
 
 module.exports = class MySQLiteService extends SQLiteService {
 
@@ -52,7 +53,6 @@ module.exports = class MySQLiteService extends SQLiteService {
     }
 
     tx(fn) {
-        throw new Error('I dont know how to do it!')
-        // but my subclassess will somehow obtain tx from cds srv_tx
+        return srv_tx.call(this, fn)
     }
 }

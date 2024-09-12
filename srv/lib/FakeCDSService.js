@@ -1,3 +1,4 @@
+const srv_tx = require('@sap/cds/lib/srv/srv-tx') // tx magic
 module.exports = class FakeCDSService {
 
   constructor(name, model, o) {
@@ -31,15 +32,13 @@ module.exports = class FakeCDSService {
   }
 
   async handle(req) {
-    throw new Error('I dont know how to do it!')
-    // but my subclassess would do something like this
+    console.log("HANDLE", req.event, JSON.stringify(req.query))
     req.target = req.query.target // patch so that middleware etag shit works
-    return this.dbService.run(req.query, req.data) // call instance of cds db service
+    return this.dbService.run(req.query, req.data) // call instance of our "db" service
   }
 
-  tx(fn) {
-    throw new Error('I dont know how to do it!')
-    // but my subclassess will somehow obtain tx from cds srv_tx
+  tx(fn) { // its ONLY here to fix $batch handler in ODataAdapter
+    return srv_tx.call(this, fn)
   }
 
 }

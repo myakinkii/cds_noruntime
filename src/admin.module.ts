@@ -4,14 +4,14 @@ import { Injectable, OnModuleInit, Inject} from '@nestjs/common';
 import { Request, Response, NextFunction } from 'express';
 import {ModuleRef} from '@nestjs/core'
 
-import { CDSModule, CDSWithExternalTX, DBWithExternalTX, Service, get_cds_middlewares_for } from './cds.provider'
+import { CDSModule, CDSServiceWithTX, DBWithAutoTX, Service, get_cds_middlewares_for } from './cds.provider'
 import { SELECT, INSERT, UPDATE, DELETE } from './cds.provider'
 
 @Controller('rest/v1/admin')
 export class AdminController {
 
     @Inject('db')
-    dbService: DBWithExternalTX
+    dbService: DBWithAutoTX
 
     @Get('*/:id')
     async getBook(@Param() params: any, @Req() req: Request, @Res() res: Response) {
@@ -48,7 +48,7 @@ export class AdminModule implements NestModule, OnModuleInit {
     svcName = 'AdminService'
     svcPath = '/odata/v4/admin'
 
-    private odataService: CDSWithExternalTX
+    private odataService: CDSServiceWithTX
 
     constructor(private moduleRef: ModuleRef) {}
 
@@ -57,7 +57,7 @@ export class AdminModule implements NestModule, OnModuleInit {
     }
     
     configure(consumer: MiddlewareConsumer) {
-        const srv = this.odataService = new (CDSWithExternalTX as Service)(this.svcName, this.cdsmodel, { at: this.svcPath })
+        const srv = this.odataService = new (CDSServiceWithTX as Service)(this.svcName, this.cdsmodel, { at: this.svcPath })
         console.log(`mount odata adapter for ${this.svcPath}`)
         consumer.apply(...get_cds_middlewares_for(srv)).forRoutes(this.svcPath)
     }

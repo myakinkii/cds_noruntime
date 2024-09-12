@@ -1,5 +1,4 @@
 const cds = require('@sap/cds')
-const srv_tx = require('@sap/cds/lib/srv/srv-tx') // tx magic
 
 const { SELECT, INSERT, UPDATE, DELETE } = cds.ql
 
@@ -51,49 +50,12 @@ function create_odata_adapter (srv) {
     return adapter
 }
 
-function get_tx_for(srv,fn){
-    return srv_tx.call(srv, fn)
-}
-
-async function cds_init () {
+async function cds_init (services) {
     return load_cds_model().then( model => { // if we are in gen/srv it will pick up prebuilt csn.json
 
-        class DBWithExternalTX extends MySQLiteService {
+        const dbService = new MySQLiteService("db", model, get_db_opts()); 
 
-            tx(fn) {
-                return get_tx_for(this, fn)
-            }
-        }
-
-        const dbService = new DBWithExternalTX ("db", model, get_db_opts()); 
-
-        class AdminService extends FakeCDSService {
-
-            tx(fn) {
-                return get_tx_for(this, fn)
-            }
-
-            async handle(req){
-                console.log("HANDLE", req.event, JSON.stringify(req.query))
-                req.target = req.query.target // patch so that middleware etag shit works
-                return this.dbService.run(req.query, req.data) // call instance of our "db" service
-            }
-        }
-
-        class CatalogService extends FakeCDSService {
-
-            tx(fn) {
-                return get_tx_for(this, fn)
-            }
-
-            async handle(req){
-                console.log("HANDLE", req.event, JSON.stringify(req.query))
-                req.target = req.query.target // patch so that middleware etag shit works
-                return this.dbService.run(req.query, req.data) // call instance of our "db" service
-            }
-        }
-
-        return [AdminService, CatalogService].map( impl => {
+        return services.map( impl => {
 
             //stolen from lib/srv/protocols/index.js
             const _slugified = name => /[^.]+$/.exec(name)[0].replace(/Service$/,'').replace(/_/g,'-').replace(/([a-z0-9])([A-Z])/g, (_,c,C) => c+'-'+C).toLowerCase()
@@ -113,7 +75,6 @@ module.exports = {
     get_cds_middlewares,
     get_cds_middlewares_for,
     get_odata_middlewares_for,
-    get_tx_for,
     get_db_opts,
     create_odata_adapter,
     write_batch_multipart,

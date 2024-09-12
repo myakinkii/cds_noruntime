@@ -29,4 +29,3 @@ async function bootstrap({adapters, middlewares}) {
 }
 
 bootstrap({ adapters:[], middlewares:{} })
-// require('../srv/lib/cds_init').cds_init().then(bootstrap)
