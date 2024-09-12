@@ -31,10 +31,20 @@ export class AdminService {
     
     @Delete('*')
     async deleteBook(@Req() req: Request, @Res() res: Response) {
-        req.query = DELETE.from`AdminService.Books`.where({ID: req.body.id})
-        const result = await (this.dbService as Service).run(req.query)
-        throw new Error('what about a rollback tho?')
-        res.status(HttpStatus.NO_CONTENT).send()
+        const tx = (this.dbService as Service).tx() // believe it or not, its our db service, but "tx-ed" now...
+        try {
+            await tx.begin()
+            await tx.run(DELETE.from`AdminService.Books`.where({ ID: req.body.id }))
+            if (Math.random() > 0.5) throw new Error('what about a rollback tho?')
+            res.status(HttpStatus.NO_CONTENT)
+            await tx.commit()
+        } catch (e) {
+            console.log(e.message)
+            res.status(HttpStatus.BAD_REQUEST)
+            await tx.rollback()
+        }
+        res.send()
+
     }
 }
 
