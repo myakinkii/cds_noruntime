@@ -62,7 +62,7 @@ export class CatalogModule implements NestModule {
     cdsmodel: any
 
     configure(consumer: MiddlewareConsumer) {
-        const srv = new EmptyCDSService(CatalogService.name, this.cdsmodel, { at: svcPath })
+        const srv = new EmptyCDSService(CatalogService.name, this.cdsmodel, { at: [svcPath] })
         console.log(`apply odata middlewares for ${svcPath}`)
         consumer.apply(...get_odata_middlewares_for(srv)).forRoutes(CatalogService)
     }

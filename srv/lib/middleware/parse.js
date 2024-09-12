@@ -74,15 +74,19 @@ const cdsReqFactory = { GET : _read, POST: _create, PATCH: _update, PUT: _update
 function modifyRequestObj (req, service){
 
   const url = req.url.replace(req.baseUrl, "")
-  const _query = parse(url, { service, strict: true })
-  const cdsReq = cdsReqFactory[req.method](service, _query, req.body)
+  try {
+    const _query = parse(url, { service, strict: true })
+    const cdsReq = cdsReqFactory[req.method](service, _query, req.body)
 
-  req.event = cdsReq.event
-  req.target = cdsReq.target
-  req.params = cdsReq.params
-  req.data = cdsReq.data
-  req.query = cdsReq.query
-  req.cdsReq = cdsReq
+    req.event = cdsReq.event
+    req.target = cdsReq.target
+    req.params = cdsReq.params
+    req.data = cdsReq.data
+    req.query = cdsReq.query
+    req.cdsReq = cdsReq
+  } catch (e){
+    console.log('PARSE.FAILED', e.message)
+  }
 }
 
 module.exports = adapter => {

@@ -4,11 +4,13 @@ import { Injectable, OnModuleInit, Inject} from '@nestjs/common';
 import { Request, Response, NextFunction } from 'express';
 import {ModuleRef} from '@nestjs/core'
 
-import { CDSModule, CDSServiceWithTX, DBWithAutoTX, Service, get_cds_middlewares_for } from './cds.provider'
+import { CDSModule, CDSServiceWithTX, DBWithAutoTX, Service, get_cds_middlewares_for, get_odata_middlewares_for } from './cds.provider'
 import { SELECT, INSERT, UPDATE, DELETE } from './cds.provider'
 
-@Controller('rest/v1/admin')
-export class AdminController {
+const svcPath = '/rest/v1/admin'
+
+@Controller(svcPath)
+export class AdminService {
 
     @Inject('db')
     dbService: DBWithAutoTX
@@ -37,7 +39,7 @@ export class AdminController {
 }
 
 @Module({
-    controllers: [AdminController],
+    controllers: [AdminService],
     imports: [CDSModule]
 })
 export class AdminModule implements NestModule, OnModuleInit {
@@ -45,20 +47,23 @@ export class AdminModule implements NestModule, OnModuleInit {
     @Inject('model')
     cdsmodel: any
 
-    svcName = 'AdminService'
-    svcPath = '/odata/v4/admin'
-
     private odataService: CDSServiceWithTX
 
     constructor(private moduleRef: ModuleRef) {}
 
     onModuleInit() {
-        this.odataService.dbService = this.moduleRef.get(AdminController).dbService
+        this.odataService.dbService = this.moduleRef.get(AdminService).dbService
     }
     
     configure(consumer: MiddlewareConsumer) {
-        const srv = this.odataService = new (CDSServiceWithTX as Service)(this.svcName, this.cdsmodel, { at: this.svcPath })
-        console.log(`mount odata adapter for ${this.svcPath}`)
-        consumer.apply(...get_cds_middlewares_for(srv)).forRoutes(this.svcPath)
+        
+        const odataPath = '/odata/v4/admin'
+        const srv = this.odataService = new (CDSServiceWithTX as Service)(AdminService.name, this.cdsmodel, { at: [odataPath, svcPath] })
+
+        console.log(`mount odata adapter for ${odataPath}`) // this will actually handle all stuff within srv
+        consumer.apply(...get_cds_middlewares_for(srv)).forRoutes(odataPath)
+
+        console.log(`apply odata middlewares for ${svcPath}`) // this will just parse stuff for us
+        consumer.apply(...get_odata_middlewares_for(srv)).forRoutes(AdminService)
     }
 }
