@@ -19,7 +19,7 @@ export class EmptyCDSService {
         this.model = model
         this.definition = model.definitions[this.name]
     }
-  
+
     get endpoints() {
         return [{ kind: this.options.to || "odata", path: this.options.at || "/odata/v4/" + this.name.toLowerCase() }]
     }
@@ -31,7 +31,7 @@ export class CDSServiceWithTX extends FakeCDSService {
 
 }
 
-export class DBWithAutoTX extends MySQLiteService {}
+export class DBWithAutoTX extends MySQLiteService { }
 
 import { Module, Injectable } from '@nestjs/common';
 
@@ -42,10 +42,10 @@ const cdsModelProvider = {
 
 const dbProvider = {
     provide: 'db',
-    useFactory: async (cdsmodel:any) => {
+    useFactory: async (cdsmodel: any) => {
         return new (DBWithAutoTX as Service)('db', cdsmodel, get_db_opts()) // hardcoded options for now
     },
-    inject:['model']
+    inject: ['model']
 }
 
 @Module({

@@ -1,8 +1,8 @@
 import { Module, NestModule, RequestMethod, MiddlewareConsumer } from '@nestjs/common';
 import { Controller, Get, Post, Delete, Req, Res, Param, HttpStatus } from '@nestjs/common';
-import { Injectable, OnModuleInit, Inject} from '@nestjs/common';
+import { Injectable, OnModuleInit, Inject } from '@nestjs/common';
 import { Request, Response, NextFunction } from 'express';
-import {ModuleRef} from '@nestjs/core'
+import { ModuleRef } from '@nestjs/core'
 
 import { CDSModule, CDSServiceWithTX, DBWithAutoTX, Service, get_cds_middlewares_for, get_odata_middlewares_for } from './cds.provider'
 import { SELECT, INSERT, UPDATE, DELETE } from './cds.provider'
@@ -28,7 +28,7 @@ export class AdminService {
         const result = await (this.dbService as Service).run(req.query)
         res.status(HttpStatus.CREATED).json(result)
     }
-    
+
     @Delete('*')
     async deleteBook(@Req() req: Request, @Res() res: Response) {
         const tx = (this.dbService as Service).tx() // believe it or not, its our db service, but "tx-ed" now...
@@ -59,14 +59,14 @@ export class AdminModule implements NestModule, OnModuleInit {
 
     private odataService: CDSServiceWithTX
 
-    constructor(private moduleRef: ModuleRef) {}
+    constructor(private moduleRef: ModuleRef) { }
 
     onModuleInit() {
         this.odataService.dbService = this.moduleRef.get(AdminService).dbService
     }
-    
+
     configure(consumer: MiddlewareConsumer) {
-        
+
         const odataPath = '/odata/v4/admin'
         const srv = this.odataService = new (CDSServiceWithTX as Service)(AdminService.name, this.cdsmodel, { at: [odataPath, svcPath] })
 

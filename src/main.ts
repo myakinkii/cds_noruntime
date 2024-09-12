@@ -8,24 +8,24 @@ function logger(req: Request, res: Response, next: NextFunction) {
     next();
 };
 
-async function bootstrap({adapters, middlewares}) {
-  const app = await NestFactory.create<NestExpressApplication>(AppModule)
-  const port = process.env.PORT || 3000
+async function bootstrap({ adapters, middlewares }) {
+    const app = await NestFactory.create<NestExpressApplication>(AppModule)
+    const port = process.env.PORT || 3000
 
-  app.use(logger)
+    app.use(logger)
 
-  const { before, after } = middlewares
+    const { before, after } = middlewares
 
-  adapters.forEach( (adapter) => {
-    console.log(`mount odata adapter for ${adapter.path}`)
-    app.use(adapter.path, before, adapter, after)
-  })
+    adapters.forEach((adapter) => {
+        console.log(`mount odata adapter for ${adapter.path}`)
+        app.use(adapter.path, before, adapter, after)
+    })
 
-  app.useStaticAssets(__dirname+'/../app');
+    app.useStaticAssets(__dirname + '/../app');
 
-  await app.listen(port)
+    await app.listen(port)
 
-  console.log(`nest running at http://localhost:${port}`)
+    console.log(`nest running at http://localhost:${port}`)
 }
 
-bootstrap({ adapters:[], middlewares:{} })
+bootstrap({ adapters: [], middlewares: {} })

@@ -1,8 +1,8 @@
 import { Module, NestModule, RequestMethod, MiddlewareConsumer } from '@nestjs/common';
 import { Controller, Get, Post, Req, Res, HttpStatus } from '@nestjs/common';
-import { Injectable, OnModuleInit, Inject} from '@nestjs/common';
+import { Injectable, OnModuleInit, Inject } from '@nestjs/common';
 import { Request, Response, NextFunction } from 'express';
-import {ModuleRef} from '@nestjs/core'
+import { ModuleRef } from '@nestjs/core'
 
 import { CDSModule, EmptyCDSService, DBWithAutoTX, Service, get_odata_middlewares_for, write_batch_multipart } from './cds.provider'
 import { SELECT, INSERT, UPDATE, DELETE } from './cds.provider'
@@ -31,14 +31,14 @@ export class CatalogService {
         const tx = (this.dbService as Service).tx() // believe it or not, its our db service, but "tx-ed" now...
         try {
             await tx.begin()
-            for (const r of req.batch.requests ){
+            for (const r of req.batch.requests) {
                 r.result = await tx.run(r.query)
                 r.statusCode = 200
             }
             // throw new Error('Batch failed')
             write_batch_multipart(req, res)
             await tx.commit()
-        } catch (e){
+        } catch (e) {
             res.status(HttpStatus.BAD_REQUEST)
             await tx.rollback()
         }
