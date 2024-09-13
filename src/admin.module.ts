@@ -16,10 +16,10 @@ export class AdminService {
     dbService: DBWithAutoTX
 
     @Get('*/:id')
-    async getBook(@Param() params: any, @Req() req: Request, @Res() res: Response) {
+    async getBook(@Param() params: any, @Req() req: Request) {
         // req.query = SELECT.one.from`CatalogService.Books`.where`ID = ${params.id}` // now its same as from middleware
-        const result = await (this.dbService as Service).run(req.query)
-        res.status(HttpStatus.OK).json(result)
+        return (this.dbService as Service).run(req.query)
+        // res.status(HttpStatus.OK).json(result)
     }
 
     @Post('*addRating')
@@ -31,10 +31,10 @@ export class AdminService {
     }
 
     @Post('*')
-    async createBook(@Req() req: Request, @Res() res: Response) {
-        req.query = INSERT.into`AdminService.Books`.entries(req.body)
-        const result = await (this.dbService as Service).run(req.query)
-        res.status(HttpStatus.CREATED).json(result)
+    async createBook(@Req() req: Request) {
+        // req.query = INSERT.into`AdminService.Books`.entries(req.body) // now its same as from middleware
+        return  (this.dbService as Service).run(req.query)
+        // res.status(HttpStatus.CREATED).json(result)
     }
 
     @Delete('*')
