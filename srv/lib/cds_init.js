@@ -32,10 +32,6 @@ function get_odata_middlewares_for(service){
     ]
 }
 
-function write_batch_multipart(req, res){
-    return ODataAdapterMiddleware._batch_out(req.batch, res)
-}
-
 function get_cds_middlewares_for(srv){
     const adapter = create_odata_adapter(srv)
     const { before, after } = get_cds_middlewares()
@@ -76,7 +72,6 @@ module.exports = {
     get_odata_middlewares_for,
     get_db_opts,
     create_odata_adapter,
-    write_batch_multipart,
     MySQLiteService,
     FakeCDSService,
     Request: cds.Request,

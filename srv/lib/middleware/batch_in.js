@@ -14,6 +14,9 @@ module.exports = adapter => {
         const url = req.url.replace(req.baseUrl, "")
         if (url != "/$batch") return next()
 
+        // enable it after I figure out how to refactor parse
+        // return textBodyParser(req, res, next) 
+
         return textBodyParser(req, res, function odata_batch_parse(err) {
             if (err) return next(err)
 

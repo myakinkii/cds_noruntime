@@ -3,7 +3,8 @@ export { Service } from '@sap/cds'
 
 import { load_cds_model, get_db_opts, FakeCDSService, MySQLiteService, Request as CDSRequest } from '../srv/lib/cds_init'
 export { SELECT, INSERT, UPDATE, DELETE } from '../srv/lib/cds_init'
-export { get_cds_middlewares_for, get_odata_middlewares_for, write_batch_multipart } from '../srv/lib/cds_init'
+export { get_cds_middlewares_for, get_odata_middlewares_for } from '../srv/lib/cds_init'
+export { parseRequestMultipart, setMultipartResponse, transformResultObject } from '../srv/lib/transform_req_res'
 
 export class EmptyCDSService {
 

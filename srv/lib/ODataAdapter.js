@@ -18,7 +18,6 @@ const ODataAdapterMiddleware = {
     _parse: require('./middleware/parse'),
     parse: require('@sap/cds/libx/odata/middleware/parse'), // cds.odata.parse added globally in cds.lib
     _batch_in: require('./middleware/batch_in'),
-    _batch_out: require('./middleware/batch_out'),
     batch: require('@sap/cds/libx/odata/middleware/batch'),
     operation: require('@sap/cds/libx/odata/middleware/operation'), // functions + actions
     create: require('@sap/cds/libx/odata/middleware/create'),

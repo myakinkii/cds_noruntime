@@ -1,10 +1,12 @@
 import { Module, NestModule, RequestMethod, MiddlewareConsumer } from '@nestjs/common';
 import { Controller, Get, Post, Req, Res, HttpStatus } from '@nestjs/common';
-import { Injectable, OnModuleInit, Inject } from '@nestjs/common';
+import { Injectable, OnModuleInit, Inject, UseInterceptors } from '@nestjs/common';
 import { Request, Response, NextFunction } from 'express';
 import { ModuleRef } from '@nestjs/core'
 
-import { CDSModule, EmptyCDSService, DBWithAutoTX, Service, get_odata_middlewares_for, write_batch_multipart } from './cds.provider'
+import { AddODataContextInterceptor, HandleMultipartInterceptor } from './transform.interceptor';
+
+import { CDSModule, EmptyCDSService, DBWithAutoTX, Service, get_odata_middlewares_for } from './cds.provider'
 import { SELECT, INSERT, UPDATE, DELETE } from './cds.provider'
 
 const svcPath = '/rest/v1/catalog'
@@ -16,6 +18,7 @@ export class CatalogService {
     dbService: DBWithAutoTX
 
     @Get('*')
+    @UseInterceptors(AddODataContextInterceptor)
     async getBooks(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
         res.status(HttpStatus.OK)
         res.set('X-Custom', 'served with nest-ed cds odata')
@@ -24,10 +27,8 @@ export class CatalogService {
     }
 
     @Post('*batch') // omg $batch just does not work ;(
-    async handleBatch(@Req() req: any, @Res() res: Response) {
-        res.set('X-Custom', 'something really nasty happens here')
-        res.set('X-Batch', `requests=${req.batch.requests.length};boundary=${req.batch.boundary}`)
-        res.status(HttpStatus.OK)
+    @UseInterceptors(HandleMultipartInterceptor, AddODataContextInterceptor)
+    async handleBatch(@Req() req: any, @Res({ passthrough: true }) res: Response) {
         const tx = (this.dbService as Service).tx() // believe it or not, its our db service, but "tx-ed" now...
         try {
             await tx.begin()
@@ -35,14 +36,14 @@ export class CatalogService {
                 r.result = await tx.run(r.query)
                 r.statusCode = 200
             }
-            // throw new Error('Batch failed')
-            write_batch_multipart(req, res)
+            // throw new Error('Batch failed') // to see where we get
+            res.status(HttpStatus.OK)
             await tx.commit()
         } catch (e) {
             res.status(HttpStatus.BAD_REQUEST)
             await tx.rollback()
         }
-        res.send()
+        return
     }
 
     @Post('submitOrder')

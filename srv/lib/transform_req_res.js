@@ -1,7 +1,18 @@
+const multipartToJson = require('@sap/cds/libx/odata/parse/multipartToJson')
+const { getBoundary } = require('@sap/cds/libx/odata/utils')
+
 const getODataMetadata = require('@sap/cds/libx/odata/utils/metadata')
 
 const { STATUS_CODES } = require('http')
 const CRLF = '\r\n'
+
+
+async function parseRequestMultipart(req) {
+
+    const boundary = getBoundary(req)
+
+    return multipartToJson(req.body, boundary).then(batch => Object.assign(batch, { boundary }))
+}
 
 function writeResponseMultipart(responses, res, rejected, group, boundary) {
     if (group) {
@@ -75,33 +86,42 @@ function formatResponseMultipart(request) {
     return [txt]
 }
 
-// YA BEAUTY!!! WHAT A HIT SON, WHAT A HIT!
-module.exports = function odata_batch_out(batch, res) {
+function transformResultObject(req, result) { // req can be actual request of part of batch
 
-    batch.requests.forEach(r => {
+    const property = false
+    const isCollection = req.query.SELECT ? !req.query.SELECT.one : false
+    const { context } = getODataMetadata(req.query, { result, isCollection })
 
-        const property = false
-        const isCollection = r.query.SELECT ? !r.query.SELECT.one : false
-        const { context } = getODataMetadata(r.query, { result: r.result, isCollection })
+    const odataResult = { '@odata.context': context }
+    if (isCollection) {
+        Object.assign(odataResult, { value: result })
+    } else if (property) {
+        Object.assign(odataResult, { value: result[property] })
+    } else {
+        Object.assign(odataResult, result[0]) // cuz now we have an array or nothing
+    }
 
-        const odataResult = { '@odata.context': context }
-        if (isCollection) {
-            Object.assign(odataResult, { value: r.result })
-        } else if (property) {
-            Object.assign(odataResult, { value: r.result[property] })
-        } else {
-            Object.assign(odataResult, r.result[0]) // cuz now we have an array or nothing
-        }
+    return odataResult
+}
 
-        r._chunk = JSON.stringify(odataResult)
+function setMultipartResponse(req, res) {
+
+    req.batch.requests.forEach(r => {
+        r._chunk = JSON.stringify(r.result)
         r.separator = Buffer.from(CRLF)
         r.txt = formatResponseMultipart(r)
     })
 
-    res.setHeader('Content-Type', `multipart/mixed;boundary=${batch.boundary}`)
+    res.setHeader('Content-Type', `multipart/mixed;boundary=${req.batch.boundary}`)
 
-    writeResponseMultipart(batch.requests, res, false, undefined, batch.boundary)
+    writeResponseMultipart(req.batch.requests, res, false, undefined, req.batch.boundary)
 
-    res.write(`${CRLF}--${batch.boundary}--${CRLF}`)
+    res.write(`${CRLF}--${req.batch.boundary}--${CRLF}`)
 
+}
+
+module.exports = {
+    parseRequestMultipart,
+    setMultipartResponse,
+    transformResultObject
 }
