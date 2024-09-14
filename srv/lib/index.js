@@ -75,5 +75,6 @@ module.exports = {
     MySQLiteService,
     FakeCDSService,
     Request: cds.Request,
-    SELECT, INSERT, UPDATE, DELETE
+    SELECT, INSERT, UPDATE, DELETE,
+    ...require('./transform_req_res')
 }

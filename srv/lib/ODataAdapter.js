@@ -10,14 +10,14 @@ const ODataAdapterMiddleware = {
         res.set('OData-Version', '4.0')
         next()
     },
-    _service_document: require('./middleware/service_document'),
+    _service_document: require('./odata_middleware/service_document'),
     service_document: require('@sap/cds/libx/odata/middleware/service-document'),
-    _metadata: require('./middleware/metadata'),
+    _metadata: require('./odata_middleware/metadata'),
     metadata: require('@sap/cds/libx/odata/middleware/metadata'),
-    _baseUrl: require('./middleware/baseUrl'),
-    _parse: require('./middleware/parse'),
+    _baseUrl: require('./odata_middleware/baseUrl'),
+    _parse: require('./odata_middleware/parse'),
     parse: require('@sap/cds/libx/odata/middleware/parse'), // cds.odata.parse added globally in cds.lib
-    _batch_in: require('./middleware/batch_in'),
+    _batch_in: require('./odata_middleware/batch_in'),
     batch: require('@sap/cds/libx/odata/middleware/batch'),
     operation: require('@sap/cds/libx/odata/middleware/operation'), // functions + actions
     create: require('@sap/cds/libx/odata/middleware/create'),

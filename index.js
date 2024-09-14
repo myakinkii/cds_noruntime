@@ -23,7 +23,7 @@ async function bootstrap({ adapters, middlewares }) {
     console.log(`cds running at http://localhost:${port}`)
 }
 
-const { FakeCDSService, cds_init } = require('./srv/lib/cds_init')
+const { FakeCDSService, cds_init } = require('./srv/lib')
 class AdminService extends FakeCDSService { }
 class CatalogService extends FakeCDSService { }
 cds_init([CatalogService, AdminService]).then(bootstrap)
