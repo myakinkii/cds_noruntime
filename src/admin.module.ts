@@ -1,8 +1,10 @@
 import { Module, NestModule, RequestMethod, MiddlewareConsumer } from '@nestjs/common';
 import { Controller, Get, Post, Delete, Req, Res, Param, HttpStatus } from '@nestjs/common';
-import { Injectable, OnModuleInit, Inject } from '@nestjs/common';
+import { Injectable, OnModuleInit, Inject, UseInterceptors } from '@nestjs/common';
 import { Request, Response, NextFunction } from 'express';
 import { ModuleRef } from '@nestjs/core'
+
+import { AddODataContextInterceptor, HandleMultipartInterceptor } from './transform.interceptor';
 
 import { CDSModule, CDSServiceWithTX, DBWithAutoTX, Service, get_cds_middlewares_for, get_odata_middlewares_for } from './cds.provider'
 import { SELECT, INSERT, UPDATE, DELETE } from './cds.provider'
@@ -10,16 +12,22 @@ import { SELECT, INSERT, UPDATE, DELETE } from './cds.provider'
 const svcPath = '/rest/v1/admin'
 
 @Controller(svcPath)
+@UseInterceptors(AddODataContextInterceptor)
 export class AdminService {
 
     @Inject('db')
     dbService: DBWithAutoTX
 
-    @Get('*/:id')
+    @Get('Books/:id')
     async getBook(@Param() params: any, @Req() req: Request) {
         // req.query = SELECT.one.from`CatalogService.Books`.where`ID = ${params.id}` // now its same as from middleware
         return (this.dbService as Service).run(req.query)
         // res.status(HttpStatus.OK).json(result)
+    }
+
+    @Get('*')
+    async getStuff(@Req() req: Request) {
+        return (this.dbService as Service).run(req.query)
     }
 
     @Post('*addRating')

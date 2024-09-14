@@ -92,13 +92,25 @@ function transformResultObject(req, result) { // req can be actual request of pa
     const isCollection = req.query.SELECT ? !req.query.SELECT.one : false
     const { context } = getODataMetadata(req.query, { result, isCollection })
 
+    if (Array.isArray(result)) result.forEach(obj => { // ugly fix fo $expands for now
+        let prop, val
+        for ( prop in obj) {
+            val = obj[prop]
+            if (typeof val == 'string') try {
+                obj[prop] = JSON.parse(val) // was json or 'null'
+            } catch (e) {
+                // was a string
+            }  
+        }
+    })
+
     const odataResult = { '@odata.context': context }
     if (isCollection) {
         Object.assign(odataResult, { value: result })
     } else if (property) {
         Object.assign(odataResult, { value: result[property] })
     } else {
-        Object.assign(odataResult, result[0]) // cuz now we have an array or nothing
+        Object.assign(odataResult, result && result[0]) // cuz now we have an array or nothing
     }
 
     return odataResult

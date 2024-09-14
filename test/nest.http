@@ -53,6 +53,11 @@ Content-Type: application/json
 }
 
 
+### get Genre 11 with 2 levels of expand
+GET {{adminServiceURL}}/Genres(11)?$expand=parent($expand=parent)
+Authorization: {{authentication}}
+
+
 ### get Book 666
 GET {{adminServiceURL}}/Books/666
 Authorization: {{authentication}}

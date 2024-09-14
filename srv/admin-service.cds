@@ -7,4 +7,5 @@ service AdminService @(requires: 'admin') {
     }
 
   entity Authors as projection on my.Authors;
+  entity Genres  as projection on my.Genres;
 }
