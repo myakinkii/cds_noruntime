@@ -12,6 +12,12 @@ module.exports = class MySQLiteService extends SQLiteService {
     async run(query, data) { // this signature is probably obsolete and comes from old times.. 
         console.log("DB.RUN", typeof query)
         const already_txed = !!this.ready // not sure but looks like this is what srv_tx deals with
+        // how do we get this.ready if TX is NOT srv?!!
+        // cuz TX has SRV prototype: const tx = { __proto__:srv, _kind: new.target.name, context: ctx }
+        // therefore we get here with tx.run is called
+        // ALSO after dispatch is replaced with _begin, next time we do tx.run BEGIN, it calls dispatch and that calls actual begin
+        // and tx.ready becomes our tx.dbc BUT srv.dbc DOES NOT EXIST
+        // BUT that means srv DOES NOT HAVE dbc/pool etc - YES, but somehow it GETS srv.pools (?!)
         if (typeof query === 'function') {
             const fn = query // for clarity
             return this.tx(fn) // here we get us tx-ed with RootTransaction

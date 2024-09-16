@@ -47,7 +47,7 @@ export class AdminService {
 
     @Delete('*')
     async deleteBook(@Req() req: Request, @Res() res: Response) {
-        const tx = (this.dbService as Service).tx() // believe it or not, its our db service, but "tx-ed" now...
+        const tx = (this.dbService as Service).tx() // believe it or not, its our db service, but "tx-ed" now... but not exactly
         try {
             await tx.begin()
             await tx.run(DELETE.from`AdminService.Books`.where({ ID: req.body.id }))

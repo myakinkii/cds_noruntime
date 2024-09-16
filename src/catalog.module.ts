@@ -29,7 +29,7 @@ export class CatalogService {
     @Post('*batch') // omg $batch just does not work ;(
     @UseInterceptors(HandleMultipartInterceptor, AddODataContextInterceptor)
     async handleBatch(@Req() req: any, @Res({ passthrough: true }) res: Response) {
-        const tx = (this.dbService as Service).tx() // believe it or not, its our db service, but "tx-ed" now...
+        const tx = (this.dbService as Service).tx() // believe it or not, its our db service, but "tx-ed" now... but not exactly
         try {
             await tx.begin()
             for (const r of req.batch.requests) {
@@ -49,7 +49,15 @@ export class CatalogService {
     @Post('submitOrder')
     async submitOrder(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
         res.status(HttpStatus.CREATED)
-        // return (this.dbService as Service).run(req.query)
+        // cds.context.tx = undefined BECAUSE no TXing is done so far
+        await (this.dbService as Service).tx( async (tx) => { // this is our db.tx()
+            // here cds.context.tx = RootTransaction for DBWithAutoTX -> cds.context.tx == tx AND tx.context == cds.context
+            await tx.begin() // this we need to trigger manually cuz we removed "magic loops" from run and dispatch
+            const results = await tx.insert({name:'Emily Brontë'}).into('sap_capire_bookshop_Authors') // this will call tx.run
+            await tx.insert({ title: 'Wuthering Heights', author: {ID: null} }).into('CatalogService.Books')
+            if (Math.random() > 0.5) throw new Error('what about a rollback tho?')
+        })
+        // indeed, commit/rollbacl is handled automatically
         return (req as any).data
     }
 
