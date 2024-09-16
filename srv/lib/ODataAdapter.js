@@ -10,6 +10,7 @@ const ODataAdapterMiddleware = {
         res.set('OData-Version', '4.0')
         next()
     },
+    _cds_context: require('./odata_middleware/cds_context'),
     _service_document: require('./odata_middleware/service_document'),
     service_document: require('@sap/cds/libx/odata/middleware/service-document'),
     _metadata: require('./odata_middleware/metadata'),

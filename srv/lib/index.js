@@ -21,8 +21,9 @@ function get_cds_middlewares(){
 function get_odata_middlewares_for(service){
     const { before, after } = get_cds_middlewares()
     return [
-        ...before,
+        // ...before,
         // we need cds.context as getKeysAndParamsFromPath crashes at const model = cds.context.model ?? srv.model
+        ODataAdapterMiddleware._cds_context(), // or maybe we can just fake it completely...
         ODataAdapterMiddleware.odata_version,
         ODataAdapterMiddleware._baseUrl({service}),
         ODataAdapterMiddleware._service_document({service}),
