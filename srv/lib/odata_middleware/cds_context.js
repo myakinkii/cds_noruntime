@@ -1,8 +1,10 @@
 module.exports = () => {
     return function cds_context (req, res, next) {
-      // if I understand correctly, this stuff called next with new EventContext in AsyncLocalStorage thread(?)
-      // need to read more about it..
       // cds._context.run (ctx, next)
+      // if I understand correctly, this stuff called next with new EventContext in AsyncLocalStorage thread(?)
+      // or just a "wrapper", it seems to me now..
+      // can read this stuff here https://docs.nestjs.com/recipes/async-local-storage as they show something similar
+      // or this https://dev.to/george_k/using-asynclocalstorage-in-nodejs-real-world-use-cases-3ekd
         cds.context = {} // but now we just try to fake it and see what happens in proper nest runtime
         next()
     }
