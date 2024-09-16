@@ -57,6 +57,6 @@ module.exports = class MySQLiteService extends SQLiteService {
     }
 
     tx(fn) {
-        return srv_tx.call(this, fn) // we assume that we actually just "tx" ourself
+        return srv_tx.call(this, fn) // we assume that we actually just "tx" ourself.. but it is more complex it seems
     }
 }

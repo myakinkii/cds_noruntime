@@ -24,25 +24,20 @@ export class CatalogService {
         res.set('X-Custom', 'served with nest-ed cds odata')
         if (!req.query.SELECT) return // HEAD service request gets here..
         return (this.dbService as Service).run(req.query) // this stuff will be auto tx-ed
+        // also as we make one "magic loop", it sets this.ready = this.begin().then(()=>true)
     }
 
     @Post('*batch') // omg $batch just does not work ;(
     @UseInterceptors(HandleMultipartInterceptor, AddODataContextInterceptor)
     async handleBatch(@Req() req: any, @Res({ passthrough: true }) res: Response) {
-        const tx = (this.dbService as Service).tx() // believe it or not, its our db service, but "tx-ed" now... but not exactly
-        try {
-            await tx.begin()
+        await (this.dbService as Service).tx( async (tx) => {
+            await tx.begin() // this is super important to call for now
             for (const r of req.batch.requests) {
                 r.result = await tx.run(r.query)
                 r.statusCode = 200
             }
-            // throw new Error('Batch failed') // to see where we get
-            res.status(HttpStatus.OK)
-            await tx.commit()
-        } catch (e) {
-            res.status(HttpStatus.BAD_REQUEST)
-            await tx.rollback()
-        }
+            if (Math.random() > 0.5) throw new Error('what about a rollback tho?')
+        })
         return
     }
 
