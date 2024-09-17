@@ -108,6 +108,8 @@ function modifyRequestObj(req, service) {
     req.query = cdsReq.query
     req.target = cdsReq.query?.target // when ubnound action, we have no query
     req.cdsReq = cdsReq
+    // console.log(urlify(req.query)) // our middleware chain can be called more than once btw
+    // has something to do with express RouterProxy? https://github.com/nestjs/nest/issues/1628
   } catch (e) {
     console.log('PARSE.FAILED', e.message)
   }
