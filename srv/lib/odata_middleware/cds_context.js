@@ -6,6 +6,7 @@ module.exports = () => {
       // can read this stuff here https://docs.nestjs.com/recipes/async-local-storage as they show something similar
       // or this https://dev.to/george_k/using-asynclocalstorage-in-nodejs-real-world-use-cases-3ekd
         cds.context = {} // but now we just try to fake it and see what happens in proper nest runtime
+        // and fail because there is setter for cds.context that still calls this._context.enterWith(x)
         next()
     }
   }
