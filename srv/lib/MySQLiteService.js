@@ -1,6 +1,7 @@
 const { Request } = require('@sap/cds')
 const SQLiteService = require('@cap-js/sqlite')
 const srv_tx = require('@sap/cds/lib/srv/srv-tx') // tx magic
+const sqlFactory = require('@sap/cds/libx/_runtime/db/sql-builder/sqlFactory') // legacy cqn to sql
 
 module.exports = class MySQLiteService extends SQLiteService {
 
@@ -43,6 +44,9 @@ module.exports = class MySQLiteService extends SQLiteService {
         const { query, data } = req // but looks like even without data it generaters proper sql based on query
         const { sql, values, entries, cqn } = this.cqn2sql(query) // lots of magic here
         // also renders and console logs sql at this moment
+
+        // const {sql, values } = sqlFactory(query, null, this.model) // does not fully support new cqn parser
+        // has issues with expands and resolving names of actual tables
 
         const ps = await this.prepare(sql)
         let results
