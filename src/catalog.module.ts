@@ -36,7 +36,7 @@ export class CatalogService {
                 r.result = await tx.run(r.query)
                 r.statusCode = 200
             }
-            if (Math.random() > 0.5) throw new Error('what about a rollback tho?')
+            // if (Math.random() > 0.5) throw new Error('what about a rollback tho?')
         })
         return
     }
