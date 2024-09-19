@@ -21,9 +21,10 @@
     "typescript": "^5.5.4"
   },
   "scripts": {
-    "serve": "cds-serve --in-memory?",
-    "start": "cds deploy && node index.js",
-    "prebuilt": "cds build && cd gen/srv && npm start",
+    "deploy": "cds deploy",
+    "cds": "cds-serve --in-memory?",
+    "node": "node index.js",
+    "prebuilt": "cds build && cd gen/srv && npm run deploy && npm run nodejs",
     "nest": "npx ts-node src/main.ts"
   },
   "cds": {
