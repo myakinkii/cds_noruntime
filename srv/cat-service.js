@@ -16,7 +16,7 @@ module.exports = function (srv){
         const {Authors, Books} = cds.entities
         // cds.context.tx = RootTransaction for ApplicationService BECAUSE middlware TXs us
         // cds.context.transactions.entries().next().value[1] == cds.context.tx
-        // await cds.run('SELECT 1;') // this leads to a DEADLOCK in sqlite
+        await cds.run('SELECT 1;') // this leads to a DEADLOCK in sqlite
         await cds.tx( async () => { // if we run cds.tx() which is basically cds.db.tx() 
             // here cds.context.tx = RootTransaction for SQLiteService
             const results = await cds.db.insert({name:'Emily Brontë'}).into(Authors) // InsertResults
